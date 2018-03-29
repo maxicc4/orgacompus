@@ -16,6 +16,7 @@ void destruir_complejo(complejo_t*);
 complejo_t* calcular_siguiente_iteracion(complejo_t*,complejo_t*);
 //int* calcular_intensidades(int*[],complejo_t*);
 void calcular_intensidades(complejo_t*);
+void crear_archivo_pgm(const char*, int, int);
 
 int ancho = 640;
 int alto = 480;
@@ -111,6 +112,9 @@ int main(void){
 	if (!arreglo_de_intensidades)
 		return -1; 	//Manejar error
 	//Crear la imagen
+
+	crear_archivo_pgm("imagen.pgm", 640, 480);
+
 	free(arreglo_de_intensidades);
 	return 0;
 }
@@ -137,4 +141,18 @@ void calcular_intensidades(/*int* [arreglo],*/complejo_t* constante){ //otros pa
 	}
 	destruir_complejo(pixel);
 	return;
+}
+
+void crear_archivo_pgm(const char *filename, int ancho, int alto){
+	FILE* fp = fopen(filename, "w");
+	fprintf(fp, "%s\n", "P2");
+	fprintf(fp, "%s\n", "# Trabajo practico de Organizacion de Computadoras");
+	fprintf(fp, "%d %d\n", ancho, alto);
+	fprintf(fp, "%s\n", "255");
+	for (int i = 0; i < ancho; i++){
+		for (int i = 0; i < alto; ++i){
+			fprintf(fp, "%s\n", "255");
+		}
+	}
+	fclose(fp);
 }
