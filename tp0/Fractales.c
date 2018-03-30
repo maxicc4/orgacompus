@@ -15,18 +15,10 @@ double calcular_modulo(complejo_t*);
 void destruir_complejo(complejo_t*);
 complejo_t* calcular_siguiente_iteracion(complejo_t*,complejo_t*);
 //int* calcular_intensidades(int*[],complejo_t*);
-void calcular_intensidades(complejo_t*);
-void crear_archivo_pgm(const char*, int, int);
+void calcular_intensidades(int*, int, int, double, double, complejo_t*, complejo_t*);
+void crear_archivo_pgm(const char*, int, int, int*);
 
-int ancho = 640;
-int alto = 480;
-double altura_maxima = 1;
-double altura_minima = -1;
-double ancho_minimo = -1;
-double ancho_maximo = 1;
-double step_altura = 1;
-double step_ancho = 1;
-/* Todos numeros placeholders*/
+
 
 complejo_t* crear_complejo(double parte_real, double parte_imaginaria){
 	complejo_t* complejo = malloc(sizeof(complejo_t));
@@ -103,30 +95,51 @@ complejo_t* calcular_siguiente_iteracion(complejo_t* complejo, complejo_t* const
 }
 
 int main(void){
+
+	int ancho_pixeles = 640;
+	int alto_pixeles = 480;
+	double ancho_complejos = 2;
+	double alto_complejos = 2;
+	complejo_t* centro = crear_complejo(0,0);
+	complejo_t* constante = crear_complejo(-0.726895347709114071439,0.188887129043845954792);
+	char* filename = "imagen.pgm";
+
 	//Procesar argumentos
-	int* arreglo_de_intensidades = malloc(ancho*alto*sizeof(int));
+	int* arreglo_de_intensidades = malloc(ancho_pixeles*alto_pixeles*sizeof(int));
 	if (!arreglo_de_intensidades)
 		return -1;	//Manejar error
-	complejo_t* constante = crear_complejo(0,0);
-	calcular_intensidades(constante);
+	
+	calcular_intensidades(arreglo_de_intensidades, ancho_pixeles, alto_pixeles, ancho_complejos, alto_complejos, 
+							constante, centro);
 	if (!arreglo_de_intensidades)
 		return -1; 	//Manejar error
-	//Crear la imagen
 
-	crear_archivo_pgm("imagen.pgm", 640, 480);
+	crear_archivo_pgm(filename, ancho_pixeles, alto_pixeles, arreglo_de_intensidades);
 
 	free(arreglo_de_intensidades);
+	free(centro);
+	free(constante);
 	return 0;
 }
 
+void calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int alto_pixeles,
+							double ancho_complejos, double alto_complejos,
+							complejo_t* constante, complejo_t* centro){
+	
 
-void calcular_intensidades(/*int* [arreglo],*/complejo_t* constante){ //otros parametros
+	double altura_maxima = centro->parte_imaginaria + alto_complejos/2;
+	double altura_minima = centro->parte_imaginaria - alto_complejos/2;
+	double ancho_maximo = centro->parte_real + ancho_complejos/2;
+	double ancho_minimo = centro->parte_real - ancho_complejos/2;
+
+	double step_altura = alto_complejos / alto_pixeles;
+	double step_ancho = ancho_complejos / ancho_pixeles;
 	//calcular alturas y anchos minimo y maximo de acuerdo con los argumentos
 	//step (paso) creo que es ancho_region (defaut 2) dividido ancho (default 640)
 	complejo_t* pixel;
-	//int indice = 0;
-	for (int j=altura_maxima; j>altura_minima; j-=step_altura){
-		for (int i=ancho_minimo; i<ancho_maximo; i+=step_ancho){
+	int indice = 0;
+	for (double j=altura_maxima; j>altura_minima; j-=step_altura){
+		for (double i=ancho_minimo; i<ancho_maximo; i+=step_ancho){
 			pixel = crear_complejo(i,j);
 			if(!pixel)
 				return; //Manejar error
@@ -135,23 +148,26 @@ void calcular_intensidades(/*int* [arreglo],*/complejo_t* constante){ //otros pa
 				pixel = calcular_siguiente_iteracion(pixel,constante);
 				cantidad_iteraciones++;
 			}
-			//arreglo[indice] = cantidad_iteraciones;
-			//indice++;
+			arreglo_de_intensidades[indice] = cantidad_iteraciones;
+			indice++;
 		}
 	}
 	destruir_complejo(pixel);
 	return;
 }
 
-void crear_archivo_pgm(const char *filename, int ancho, int alto){
+void crear_archivo_pgm(const char *filename, int ancho_pixeles, int alto_pixeles, 
+						int* arreglo_de_intensidades){
 	FILE* fp = fopen(filename, "w");
 	fprintf(fp, "%s\n", "P2");
 	fprintf(fp, "%s\n", "# Trabajo practico de Organizacion de Computadoras");
-	fprintf(fp, "%d %d\n", ancho, alto);
+	fprintf(fp, "%d %d\n", ancho_pixeles, alto_pixeles);
 	fprintf(fp, "%s\n", "255");
-	for (int i = 0; i < ancho; i++){
-		for (int i = 0; i < alto; ++i){
-			fprintf(fp, "%s\n", "255");
+	int indice = 0;
+	for (int i = 0; i < ancho_pixeles; i++){
+		for (int i = 0; i < alto_pixeles; ++i){
+			fprintf(fp, "%d\n", arreglo_de_intensidades[indice]);
+			indice++;
 		}
 	}
 	fclose(fp);
