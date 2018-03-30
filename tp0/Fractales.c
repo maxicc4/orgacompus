@@ -7,9 +7,6 @@ typedef struct{
 }complejo_t;
 
 
-
-
-
 complejo_t* crear_complejo(double parte_real, double parte_imaginaria){
 	complejo_t* complejo = malloc(sizeof(complejo_t));
 	if (!complejo)
@@ -90,19 +87,15 @@ void calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int 
 	
 
 	double altura_maxima = centro->parte_imaginaria + alto_complejos/2;
-	double altura_minima = centro->parte_imaginaria - alto_complejos/2;
-	double ancho_maximo = centro->parte_real + ancho_complejos/2;
 	double ancho_minimo = centro->parte_real - ancho_complejos/2;
-
 	double step_altura = alto_complejos / alto_pixeles;
 	double step_ancho = ancho_complejos / ancho_pixeles;
-	//calcular alturas y anchos minimo y maximo de acuerdo con los argumentos
-	//step (paso) creo que es ancho_region (defaut 2) dividido ancho (default 640)
+
 	complejo_t* pixel;
 	int indice = 0;
-	for (double j=altura_maxima; j>altura_minima; j-=step_altura){
-		for (double i=ancho_minimo; i<ancho_maximo; i+=step_ancho){
-			pixel = crear_complejo(i,j);
+	for (double j=0; j<alto_pixeles; j++){
+		for (double i=0; i<ancho_pixeles; i++){
+			pixel = crear_complejo(ancho_minimo + i*step_ancho,altura_maxima - j*step_altura);
 			if(!pixel)
 				return; //Manejar error
 			int cantidad_iteraciones = 0;
