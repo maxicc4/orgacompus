@@ -144,7 +144,7 @@ void calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int 
 			if(!pixel)
 				return; //Manejar error
 			int cantidad_iteraciones = 0;
-			while ((calcular_modulo(pixel)<1)&&(cantidad_iteraciones<255)){
+			while ((calcular_modulo(pixel)<=2)&&(cantidad_iteraciones<255)){
 				pixel = calcular_siguiente_iteracion(pixel,constante);
 				cantidad_iteraciones++;
 			}
