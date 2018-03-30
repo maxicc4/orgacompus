@@ -6,17 +6,7 @@ typedef struct{
 	double parte_real, parte_imaginaria;
 }complejo_t;
 
-complejo_t* crear_complejo(double,double);
-double obtener_parte_real(complejo_t*);
-double obtener_parte_imaginaria(complejo_t*);
-complejo_t* elevar_complejo_al_cuadrado(complejo_t*);
-complejo_t* sumar_dos_complejos(complejo_t*,complejo_t*);
-double calcular_modulo(complejo_t*);
-void destruir_complejo(complejo_t*);
-complejo_t* calcular_siguiente_iteracion(complejo_t*,complejo_t*);
-//int* calcular_intensidades(int*[],complejo_t*);
-void calcular_intensidades(int*, int, int, double, double, complejo_t*, complejo_t*);
-void crear_archivo_pgm(const char*, int, int, int*);
+
 
 
 
@@ -94,34 +84,6 @@ complejo_t* calcular_siguiente_iteracion(complejo_t* complejo, complejo_t* const
 	return sumar_dos_complejos(elevar_complejo_al_cuadrado(complejo),constante);
 }
 
-int main(void){
-
-	int ancho_pixeles = 640;
-	int alto_pixeles = 480;
-	double ancho_complejos = 2;
-	double alto_complejos = 2;
-	complejo_t* centro = crear_complejo(0,0);
-	complejo_t* constante = crear_complejo(-0.726895347709114071439,0.188887129043845954792);
-	char* filename = "imagen.pgm";
-
-	//Procesar argumentos
-	int* arreglo_de_intensidades = malloc(ancho_pixeles*alto_pixeles*sizeof(int));
-	if (!arreglo_de_intensidades)
-		return -1;	//Manejar error
-	
-	calcular_intensidades(arreglo_de_intensidades, ancho_pixeles, alto_pixeles, ancho_complejos, alto_complejos, 
-							constante, centro);
-	if (!arreglo_de_intensidades)
-		return -1; 	//Manejar error
-
-	crear_archivo_pgm(filename, ancho_pixeles, alto_pixeles, arreglo_de_intensidades);
-
-	free(arreglo_de_intensidades);
-	free(centro);
-	free(constante);
-	return 0;
-}
-
 void calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int alto_pixeles,
 							double ancho_complejos, double alto_complejos,
 							complejo_t* constante, complejo_t* centro){
@@ -171,4 +133,32 @@ void crear_archivo_pgm(const char *filename, int ancho_pixeles, int alto_pixeles
 		}
 	}
 	fclose(fp);
+}
+
+int main(void){
+
+	int ancho_pixeles = 640;
+	int alto_pixeles = 480;
+	double ancho_complejos = 2;
+	double alto_complejos = 2;
+	complejo_t* centro = crear_complejo(0,0);
+	complejo_t* constante = crear_complejo(-0.726895347709114071439,0.188887129043845954792);
+	char* filename = "imagen.pgm";
+
+	//Procesar argumentos
+	int* arreglo_de_intensidades = malloc(ancho_pixeles*alto_pixeles*sizeof(int));
+	if (!arreglo_de_intensidades)
+		return -1;	//Manejar error
+	
+	calcular_intensidades(arreglo_de_intensidades, ancho_pixeles, alto_pixeles, ancho_complejos, alto_complejos, 
+							constante, centro);
+	if (!arreglo_de_intensidades)
+		return -1; 	//Manejar error
+
+	crear_archivo_pgm(filename, ancho_pixeles, alto_pixeles, arreglo_de_intensidades);
+
+	free(arreglo_de_intensidades);
+	destruir_complejo(centro);
+	destruir_complejo(constante);
+	return 0;
 }
