@@ -33,39 +33,12 @@ complejo_t* elevar_complejo_al_cuadrado(complejo_t* complejo){
 	return cuadrado;
 }
 
-/*
-complejo_t* elevar_complejo_al_cuadrado(complejo_t* complejo){
-	double parte_real = complejo->parte_real;
-	double parte_imaginaria = complejo->parte_imaginaria;
-	double parte_real_cuadrado = ((parte_real*parte_real)-(parte_imaginaria*parte_imaginaria));
-	double parte_imaginaria_cuadrado = (2*parte_real*parte_imaginaria);
-	complejo->parte_real = parte_real_cuadrado;
-	complejo->parte_imaginaria = parte_imaginaria_cuadrado;
-	return complejo;
-}
-Esta version del cuadrado pisa el complejo pasado por parametro
-Desventaja: pisa el complejo pasado por parametro
-Ventaja: ahorra memoria*/
-
 complejo_t* sumar_dos_complejos(complejo_t* complejo1,complejo_t* complejo2){
 	double parte_real_suma = (complejo1->parte_real)+(complejo2->parte_real);
 	double parte_imaginaria_suma = (complejo1->parte_imaginaria)+(complejo2->parte_imaginaria);
 	complejo_t* suma = crear_complejo(parte_real_suma,parte_imaginaria_suma);
 	return suma;
 }
-
-/*
-complejo_t* sumar_dos_complejos(complejo_t* complejo1,complejo_t* complejo2){
-	double parte_real_suma = (complejo1->parte_real)+(complejo2->parte_real);
-	double parte_imaginaria_suma = (complejo1->parte_imaginaria)+(complejo2->parte_imaginaria);
-	complejo1->parte_real = parte_real_suma;
-	complejo1->parte_imaginaria = parte_imaginaria_suma;
-	return complejo1;
-}
-
-Esta version de la suma pisa el primer complejo pasado por parametro
-Desventaja: pisa el primer complejo pasado por parametro
-Ventaja: ahorra memoria*/
 
 double calcular_modulo(complejo_t* complejo){
 	double parte_real = obtener_parte_real(complejo);
@@ -78,7 +51,10 @@ void destruir_complejo(complejo_t* complejo){
 }
 
 complejo_t* calcular_siguiente_iteracion(complejo_t* complejo, complejo_t* constante){
-	return sumar_dos_complejos(elevar_complejo_al_cuadrado(complejo),constante);
+	complejo_t* cuadrado = elevar_complejo_al_cuadrado(complejo);
+	complejo_t* suma = sumar_dos_complejos(cuadrado,constante);
+	destruir_complejo(cuadrado);
+	return suma;
 }
 
 void calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int alto_pixeles,
@@ -92,6 +68,7 @@ void calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int 
 	double step_ancho = ancho_complejos / ancho_pixeles;
 
 	complejo_t* pixel;
+	complejo_t* pixelNuevo;
 	int indice = 0;
 	for (double j=0; j<alto_pixeles; j++){
 		for (double i=0; i<ancho_pixeles; i++){
@@ -100,14 +77,16 @@ void calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int 
 				return; //Manejar error
 			int cantidad_iteraciones = 0;
 			while ((calcular_modulo(pixel)<=2)&&(cantidad_iteraciones<255)){
-				pixel = calcular_siguiente_iteracion(pixel,constante);
+				pixelNuevo = calcular_siguiente_iteracion(pixel,constante);
+				destruir_complejo(pixel);
+				pixel = pixelNuevo;
 				cantidad_iteraciones++;
 			}
 			arreglo_de_intensidades[indice] = cantidad_iteraciones;
 			indice++;
+			destruir_complejo(pixel);
 		}
 	}
-	destruir_complejo(pixel);
 	return;
 }
 
