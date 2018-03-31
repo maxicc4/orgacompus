@@ -57,7 +57,7 @@ complejo_t* calcular_siguiente_iteracion(complejo_t* complejo, complejo_t* const
 	return suma;
 }
 
-void calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int alto_pixeles,
+int calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int alto_pixeles,
 							double ancho_complejos, double alto_complejos,
 							complejo_t* constante, complejo_t* centro){
 	
@@ -73,8 +73,10 @@ void calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int 
 	for (double j=0; j<alto_pixeles; j++){
 		for (double i=0; i<ancho_pixeles; i++){
 			pixel = crear_complejo(ancho_minimo + i*step_ancho,altura_maxima - j*step_altura);
-			if(!pixel)
-				return; //Manejar error
+			if(!pixel){
+				perror("Error al crear representacion compleja del pixel");
+				return -1;
+			}
 			int cantidad_iteraciones = 0;
 			while ((calcular_modulo(pixel)<=2)&&(cantidad_iteraciones<255)){
 				pixelNuevo = calcular_siguiente_iteracion(pixel,constante);
@@ -87,24 +89,39 @@ void calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int 
 			destruir_complejo(pixel);
 		}
 	}
-	return;
+	return 0;
 }
 
-void crear_archivo_pgm(const char *filename, int ancho_pixeles, int alto_pixeles, 
+int crear_archivo_pgm(const char *filename, int ancho_pixeles, int alto_pixeles, 
 						int* arreglo_de_intensidades){
+	int res;
 	FILE* fp = fopen(filename, "w");
-	fprintf(fp, "%s\n", "P2");
-	fprintf(fp, "%s\n", "# Trabajo practico de Organizacion de Computadoras");
-	fprintf(fp, "%d %d\n", ancho_pixeles, alto_pixeles);
-	fprintf(fp, "%s\n", "255");
+	if (fp == NULL){
+        perror("Error al abrir archivo");
+        return -1;
+    }
+	res = fprintf(fp, "%s\n%s\n%d %d\n%s\n", 
+		"P2", 
+		"# Trabajo practico de Organizacion de Computadoras", 
+		ancho_pixeles, alto_pixeles, 
+		"255");
+	if (res < 0){
+		perror("Error al escribir en el archivo");
+		return -1;
+	}
 	int indice = 0;
 	for (int i = 0; i < ancho_pixeles; i++){
 		for (int i = 0; i < alto_pixeles; ++i){
-			fprintf(fp, "%d\n", arreglo_de_intensidades[indice]);
+			res = fprintf(fp, "%d\n", arreglo_de_intensidades[indice]);
 			indice++;
+			if (res < 0){
+				perror("Error al escribir en el archivo");
+				return -1;
+			}
 		}
 	}
 	fclose(fp);
+	return 0;
 }
 
 int main(void){
@@ -117,17 +134,26 @@ int main(void){
 	complejo_t* constante = crear_complejo(-0.726895347709114071439,0.188887129043845954792);
 	char* filename = "imagen.pgm";
 
+	int res = 0;
 	//Procesar argumentos
 	int* arreglo_de_intensidades = malloc(ancho_pixeles*alto_pixeles*sizeof(int));
-	if (!arreglo_de_intensidades)
-		return -1;	//Manejar error
-	
-	calcular_intensidades(arreglo_de_intensidades, ancho_pixeles, alto_pixeles, ancho_complejos, alto_complejos, 
-							constante, centro);
-	if (!arreglo_de_intensidades)
-		return -1; 	//Manejar error
+	if (!arreglo_de_intensidades){
+		perror("Error al reservar memoria para la intensidad de pixeles");
+		return -1;
+	}
 
-	crear_archivo_pgm(filename, ancho_pixeles, alto_pixeles, arreglo_de_intensidades);
+	res = calcular_intensidades(arreglo_de_intensidades, ancho_pixeles, alto_pixeles, ancho_complejos, alto_complejos, 
+							constante, centro);
+	if (res == -1){
+		perror("Error al calcular intensidades de los pixeles");
+		return -1;
+	}
+
+	res = crear_archivo_pgm(filename, ancho_pixeles, alto_pixeles, arreglo_de_intensidades);
+	if (res == -1){
+		perror("Error al crear el archivo pgm");
+		return -1;
+	}
 
 	free(arreglo_de_intensidades);
 	destruir_complejo(centro);
