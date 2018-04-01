@@ -96,33 +96,37 @@ int calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int a
 int crear_archivo_pgm(const char *filename, int ancho_pixeles, int alto_pixeles, 
 						int* arreglo_de_intensidades){
 	int res;
-	
-		FILE* fp = fopen(filename, "w");
-		if (fp == NULL){
+	FILE* fp;
+	if (strcmp(filename, "-") == 0){
+		fp = stdout;
+	} else {
+		fp = fopen(filename, "w");
+	}
+	if (fp == NULL){
 		perror("Error al abrir archivo");
 		return -1;
-	    	}
-		res = fprintf(fp, "%s\n%s\n%d %d\n%s\n", 
-			"P2", 
-			"# Trabajo practico de Organizacion de Computadoras", 
-			ancho_pixeles, alto_pixeles, 
-			"255");
-		if (res < 0){
-			perror("Error al escribir en el archivo");
-			return -1;
-		}
-		int indice = 0;
-		for (int i = 0; i < ancho_pixeles; i++){
-			for (int i = 0; i < alto_pixeles; ++i){
-				res = fprintf(fp, "%d\n", arreglo_de_intensidades[indice]);
-				indice++;
-				if (res < 0){
-					perror("Error al escribir en el archivo");
-					return -1;
-				}
+    }
+	res = fprintf(fp, "%s\n%s\n%d %d\n%s\n", 
+		"P2", 
+		"# Trabajo practico de Organizacion de Computadoras", 
+		ancho_pixeles, alto_pixeles, 
+		"255");
+	if (res < 0){
+		perror("Error al escribir en el archivo");
+		return -1;
+	}
+	int indice = 0;
+	for (int i = 0; i < ancho_pixeles; i++){
+		for (int i = 0; i < alto_pixeles; ++i){
+			res = fprintf(fp, "%d\n", arreglo_de_intensidades[indice]);
+			indice++;
+			if (res < 0){
+				perror("Error al escribir en el archivo");
+				return -1;
 			}
 		}
-		fclose(fp);
+	}
+	fclose(fp);
 	return 0;
 }
 
