@@ -96,32 +96,33 @@ int calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int a
 int crear_archivo_pgm(const char *filename, int ancho_pixeles, int alto_pixeles, 
 						int* arreglo_de_intensidades){
 	int res;
-	FILE* fp = fopen(filename, "w");
-	if (fp == NULL){
-        perror("Error al abrir archivo");
-        return -1;
-    }
-	res = fprintf(fp, "%s\n%s\n%d %d\n%s\n", 
-		"P2", 
-		"# Trabajo practico de Organizacion de Computadoras", 
-		ancho_pixeles, alto_pixeles, 
-		"255");
-	if (res < 0){
-		perror("Error al escribir en el archivo");
+	
+		FILE* fp = fopen(filename, "w");
+		if (fp == NULL){
+		perror("Error al abrir archivo");
 		return -1;
-	}
-	int indice = 0;
-	for (int i = 0; i < ancho_pixeles; i++){
-		for (int i = 0; i < alto_pixeles; ++i){
-			res = fprintf(fp, "%d\n", arreglo_de_intensidades[indice]);
-			indice++;
-			if (res < 0){
-				perror("Error al escribir en el archivo");
-				return -1;
+	    	}
+		res = fprintf(fp, "%s\n%s\n%d %d\n%s\n", 
+			"P2", 
+			"# Trabajo practico de Organizacion de Computadoras", 
+			ancho_pixeles, alto_pixeles, 
+			"255");
+		if (res < 0){
+			perror("Error al escribir en el archivo");
+			return -1;
+		}
+		int indice = 0;
+		for (int i = 0; i < ancho_pixeles; i++){
+			for (int i = 0; i < alto_pixeles; ++i){
+				res = fprintf(fp, "%d\n", arreglo_de_intensidades[indice]);
+				indice++;
+				if (res < 0){
+					perror("Error al escribir en el archivo");
+					return -1;
+				}
 			}
 		}
-	}
-	fclose(fp);
+		fclose(fp);
 	return 0;
 }
 
@@ -155,7 +156,7 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 				   char *valor2;
 				   valor2 = strchr(argv[i+1], separador);
 				   valor2 = valor2 +1;
-				   if(atoi(str1) > 0 && atoi(valor2) > 0)
+				   if(atoi(str1) > 40 && atoi(valor2) > 40)
 				   {
 				   	*anchox = atoi(str1);
 					*altoy = 	atoi(valor2);
@@ -197,25 +198,33 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 				  		valor2 = strchr(argv[i+1], separador);
 					}
 				}
+				//printf("%c",valor2[strlen(valor2)-1]);						
                         	argv[i+1] = argv[i+1]-1; 
 				if(!strcmp(argv[i], "-c") || !strcmp(argv[i], "--center"))
 				{
 					if( ( (atof(valor1) != 0) || (valor1[0] == '0') ) && ((atof(valor2) != 0) || (valor2[0] == '0')) )
-					{
-					   	*center_x = atof(valor1);
-						*center_y = atof(valor2);
-					   	//printf(" centerx:%f",*center_x );
-						//printf("centery:%f",*center_y );
+					{					
+						
+						if(valor2[strlen(valor2)-1] == 'i')					
+						{
+					        	*center_x = atof(valor1);
+							*center_y = atof(valor2);
+							//printf(" centerx:%f",*center_x );
+							//printf("centery:%f",*center_y );
+						}
 					}
 				}
 				if(!strcmp(argv[i], "-s") || !strcmp(argv[i], "--seed"))
 				{
 					if( ( (atof(valor1) != 0) || (valor1[0] == '0') ) && ((atof(valor2) != 0) || (valor2[0] == '0')) )
 					{
-					   	*seed_x = atof(valor1);
-						*seed_y = atof(valor2);
-					   	//printf("seedx:%f",*seed_x );
-						//printf("seedy:%f",*seed_y );
+					   	if(valor2[strlen(valor2)-1] == 'i')	
+						{
+							*seed_x = atof(valor1);
+							*seed_y = atof(valor2);
+						   	//printf("seedx:%f",*seed_x );
+							//printf("seedy:%f",*seed_y );
+						}
 					}
 				}       
 			}
@@ -225,7 +234,7 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 		{	
 			if(argv[i+1] != NULL)// si existe el siguiente
 			{	
-				if( atof(argv[i+1]) > 1)
+				if( atof(argv[i+1]) >= 2)
 				{
 					*w_rec = atof(argv[i+1]);
 				}
@@ -235,7 +244,7 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 		{	
 			if(argv[i+1] != NULL)// si existe el siguiente
 			{	
-				if(atof(argv[i+1]) > 1) // validamos q sea mayor a 1 quitamos la chance q sea negativo
+				if(atof(argv[i+1]) >= 2) // validamos q sea mayor a 1 quitamos la chance q sea negativo
 				{
 					*h_rec = atof(argv[i+1]);
 				}
@@ -246,7 +255,10 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 		{	
 			const char separador = '.';
 			char *valor2;
-			valor2 = strchr(argv[i+1], separador);
+			if (argv[i+1] != NULL && strcspn (argv[i+1], ".") < strlen(argv[i+1]))			
+			{
+				valor2 = strchr(argv[i+1], separador);
+			}
 			//printf("%s",valor2);	
 			if( (argv[i+1] != NULL) && (!strcmp(valor2, ".pgm" ) ) )// si existe el siguiente
 			{	
@@ -269,15 +281,15 @@ int main(int argc, char *argv[]){
 	double center_y = 0;
 	double seed_x = 0;
 	double seed_y = 0;
-	const char* filename = NULL; 
+	const char* filename = "-"; 
 	// retorna '-' salida por consola, o el nombre del archivo
 	filename = lecturaArgumentos(argc,argv,&ancho_pixeles,&alto_pixeles,&ancho_complejos,&alto_complejos,
 	&center_x,&center_y,&seed_x,&seed_y,filename);	
 	// esto es para las pruebas de validacion despues se saca
-	printf("anchodespues:%i\n ",ancho_pixeles );
-	printf("altodespues:%i\n ",alto_pixeles );
-	printf("anchocompdespues:%f\n ",ancho_complejos );
-	printf("altodescomppues:%f\n ",alto_complejos );
+	printf("anchoresolucion:%i\n ",ancho_pixeles );
+	printf("altoresolucion:%i\n ",alto_pixeles );
+	printf("anchocomplejo:%f\n ",ancho_complejos );
+	printf("altodescomplejo:%f\n ",alto_complejos );
 	printf("anchocentro:%f\n ",center_x );
 	printf("altocentro:%f\n ",center_y );
 	printf("anchoseed:%f\n ",seed_x );
