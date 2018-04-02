@@ -285,7 +285,7 @@ int main(int argc, char *argv[]){
 	filename = lecturaArgumentos(argc,argv,&ancho_pixeles,&alto_pixeles,&ancho_complejos,&alto_complejos,
 	&center_x,&center_y,&seed_x,&seed_y,filename);	
 	// esto es para las pruebas de validacion despues se saca
-	printf("anchoresolucion:%i\n ",ancho_pixeles );
+	/*printf("anchoresolucion:%i\n ",ancho_pixeles );
 	printf("altoresolucion:%i\n ",alto_pixeles );
 	printf("anchocomplejo:%f\n ",ancho_complejos );
 	printf("altodescomplejo:%f\n ",alto_complejos );
@@ -293,14 +293,13 @@ int main(int argc, char *argv[]){
 	printf("altocentro:%f\n ",center_y );
 	printf("anchoseed:%f\n ",seed_x );
 	printf("altoseed:%f\n ",seed_y );
-	printf("nombrearchivo:%s\n ",filename );
+	printf("nombrearchivo:%s\n ",filename );*/
 	
 	complejo_t* centro = crear_complejo(center_x,center_y);
 	complejo_t* constante = crear_complejo(seed_x,seed_y);
 	
 
 	int res = 0;
-	//Procesar argumentos
 	int* arreglo_de_intensidades = malloc(ancho_pixeles*alto_pixeles*sizeof(int));
 	if (!arreglo_de_intensidades){
 		perror("Error al reservar memoria para la intensidad de pixeles");
