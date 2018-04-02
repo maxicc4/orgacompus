@@ -17,14 +17,6 @@ complejo_t* crear_complejo(double parte_real, double parte_imaginaria){
 	return complejo;
 }
 
-double obtener_parte_real(complejo_t* complejo){
-	return (complejo->parte_real);
-}
-
-double obtener_parte_imaginaria(complejo_t* complejo){
-	return (complejo->parte_imaginaria);
-}
-
 complejo_t* elevar_complejo_al_cuadrado(complejo_t* complejo){
 	double parte_real = complejo->parte_real;
 	double parte_imaginaria = complejo->parte_imaginaria;
@@ -42,8 +34,8 @@ complejo_t* sumar_dos_complejos(complejo_t* complejo1,complejo_t* complejo2){
 }
 
 double calcular_modulo(complejo_t* complejo){
-	double parte_real = obtener_parte_real(complejo);
-	double parte_imaginaria = obtener_parte_imaginaria(complejo);
+	double parte_real = complejo->parte_real;
+	double parte_imaginaria = complejo->parte_imaginaria;
 	return sqrt((parte_real*parte_real)+(parte_imaginaria*parte_imaginaria));
 }
 
