@@ -7,7 +7,7 @@ typedef struct{
 	double parte_real, parte_imaginaria;
 }complejo_t;
 
-
+/*Recibe dos numeros double y devuelve un objeto complejo con dichos valores como parte real e imaginaria*/
 complejo_t* crear_complejo(double parte_real, double parte_imaginaria){
 	complejo_t* complejo = malloc(sizeof(complejo_t));
 	if (!complejo)
@@ -17,6 +17,7 @@ complejo_t* crear_complejo(double parte_real, double parte_imaginaria){
 	return complejo;
 }
 
+/*Recibe una referencia a un complejo y devuelve su cuadrado como nuevo complejo*/
 complejo_t* elevar_complejo_al_cuadrado(complejo_t* complejo){
 	double parte_real = complejo->parte_real;
 	double parte_imaginaria = complejo->parte_imaginaria;
@@ -26,6 +27,7 @@ complejo_t* elevar_complejo_al_cuadrado(complejo_t* complejo){
 	return cuadrado;
 }
 
+/*Recibe dos referencias a complejos y devuelve su suma como nuevo complejo*/
 complejo_t* sumar_dos_complejos(complejo_t* complejo1,complejo_t* complejo2){
 	double parte_real_suma = (complejo1->parte_real)+(complejo2->parte_real);
 	double parte_imaginaria_suma = (complejo1->parte_imaginaria)+(complejo2->parte_imaginaria);
@@ -33,16 +35,20 @@ complejo_t* sumar_dos_complejos(complejo_t* complejo1,complejo_t* complejo2){
 	return suma;
 }
 
+/*Recibe una referencia a un complejo y devuelve su modulo como double*/
 double calcular_modulo(complejo_t* complejo){
 	double parte_real = complejo->parte_real;
 	double parte_imaginaria = complejo->parte_imaginaria;
 	return sqrt((parte_real*parte_real)+(parte_imaginaria*parte_imaginaria));
 }
 
+/*Destruye al complejo pasado por parametro, liberando la memoria*/
 void destruir_complejo(complejo_t* complejo){
 	free(complejo);
 }
 
+/*Recibe dos referencias a complejos donde el primero representa a un pixel y el segundo a la seed
+y devuelve la siguiente iteracion del pixel segun la formula*/
 complejo_t* calcular_siguiente_iteracion(complejo_t* complejo, complejo_t* constante){
 	complejo_t* cuadrado = elevar_complejo_al_cuadrado(complejo);
 	complejo_t* suma = sumar_dos_complejos(cuadrado,constante);
@@ -50,6 +56,8 @@ complejo_t* calcular_siguiente_iteracion(complejo_t* complejo, complejo_t* const
 	return suma;
 }
 
+/*Recibe un arreglo de enteros y todos los parametros necesarios para iterar sobre cada pixel y guardar la cantidad
+de iteraciones que se realizaron sobre cada uno. Devuelve -1 en caso de error, 0 si no*/
 int calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int alto_pixeles,
 							double ancho_complejos, double alto_complejos,
 							complejo_t* constante, complejo_t* centro){
@@ -85,6 +93,9 @@ int calcular_intensidades(int* arreglo_de_intensidades, int ancho_pixeles, int a
 	return 0;
 }
 
+/*Recibe un nombre de archivo, ancho, alto y las intensidades.
+Crea un archivo pgm con la informacion necesaria para visualizar el fractal
+Devuelve -1 en caso de error, 0 si no*/
 int crear_archivo_pgm(const char *filename, int ancho_pixeles, int alto_pixeles, 
 						int* arreglo_de_intensidades){
 	int res;
@@ -122,6 +133,8 @@ int crear_archivo_pgm(const char *filename, int ancho_pixeles, int alto_pixeles,
 	return 0;
 }
 
+/*Realiza la lectura de los argumentros pasados por consola y todas las validaciones necesarias
+Devuelve '-' salida por consola, o el nombre del archivo destino*/
 const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,double* h_rec,double* w_rec,double* center_x,double* center_y,
 	double* seed_x,double* seed_y,const char* archivo){
 	int i=0;
@@ -172,7 +185,6 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 			{	
 				argv[i+1] = argv[i+1] + 1;
 				memset(&valor1[0], 0, sizeof(valor1));
-					//ACORDARSE DE VOLVER AL RESTAR AL FINAL ANTES DE HACER EL ATOF
 				if(  strcspn (argv[i+1], "+") < strlen(argv[i+1])  
 					|| ( strcspn (argv[i+1], "-") < strlen(argv[i+1]) ) )	 					//entra 				sihay almenos 1 + o un - ,y no es al inicio
 				{
@@ -261,7 +273,8 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 	return archivo;
 }
 
-
+/*Funcion principal. Toma los argumentos recibidos por consola, o aquellos por defecto, realiza
+ iteraciones para cada pixel y guarda la informacion necesaria en un archivo pgm para visualizar el fractal*/
 int main(int argc, char *argv[]){
 
 	int ancho_pixeles = 640;
@@ -273,24 +286,13 @@ int main(int argc, char *argv[]){
 	double seed_x = 0;
 	double seed_y = 0;
 	const char* filename = "-"; 
-	// retorna '-' salida por consola, o el nombre del archivo
+	
 	filename = lecturaArgumentos(argc,argv,&ancho_pixeles,&alto_pixeles,&ancho_complejos,&alto_complejos,
 	&center_x,&center_y,&seed_x,&seed_y,filename);	
-	// esto es para las pruebas de validacion despues se saca
-	/*printf("anchoresolucion:%i\n ",ancho_pixeles );
-	printf("altoresolucion:%i\n ",alto_pixeles );
-	printf("anchocomplejo:%f\n ",ancho_complejos );
-	printf("altodescomplejo:%f\n ",alto_complejos );
-	printf("anchocentro:%f\n ",center_x );
-	printf("altocentro:%f\n ",center_y );
-	printf("anchoseed:%f\n ",seed_x );
-	printf("altoseed:%f\n ",seed_y );
-	printf("nombrearchivo:%s\n ",filename );*/
 	
 	complejo_t* centro = crear_complejo(center_x,center_y);
 	complejo_t* constante = crear_complejo(seed_x,seed_y);
 	
-
 	int res = 0;
 	int* arreglo_de_intensidades = malloc(ancho_pixeles*alto_pixeles*sizeof(int));
 	if (!arreglo_de_intensidades){
