@@ -257,18 +257,13 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 		}
 		if(!strcmp(argv[i], "-o") || !strcmp(argv[i], "--output"))
 		{	
-			const char separador = '.';
-			char *valor2;
-			if (argv[i+1] != NULL && strcspn (argv[i+1], ".") < strlen(argv[i+1]))			
-			{
-				valor2 = strchr(argv[i+1], separador);
-			}
-			//printf("%s",valor2);	
-			if( (argv[i+1] != NULL) && (!strcmp(valor2, ".pgm" ) ) )// si existe el siguiente
+			
+			if( (argv[i+1] != NULL) && (strcmp(argv[i+1], "-" ) ) )// si existe el siguiente
 			{	
 				archivo = argv[i+1];// debemos ver si es un archivo valido
 				//printf("%s",archivo);
 			}
+			
 		}					
         }
 	return archivo;
