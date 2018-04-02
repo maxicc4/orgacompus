@@ -238,7 +238,7 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 		{	
 			if(argv[i+1] != NULL)// si existe el siguiente
 			{	
-				if( atof(argv[i+1]) >= 2)
+				if( atof(argv[i+1]) >= 0.00001)
 				{
 					*w_rec = atof(argv[i+1]);
 				}
@@ -248,7 +248,7 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 		{	
 			if(argv[i+1] != NULL)// si existe el siguiente
 			{	
-				if(atof(argv[i+1]) >= 2) // validamos q sea mayor a 1 quitamos la chance q sea negativo
+				if(atof(argv[i+1]) >= 0.00001) // validamos q sea mayor a 1 quitamos la chance q sea negativo
 				{
 					*h_rec = atof(argv[i+1]);
 				}
