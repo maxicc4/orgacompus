@@ -297,6 +297,8 @@ int main(int argc, char *argv[]){
 	int* arreglo_de_intensidades = malloc(ancho_pixeles*alto_pixeles*sizeof(int));
 	if (!arreglo_de_intensidades){
 		perror("Error al reservar memoria para la intensidad de pixeles");
+		destruir_complejo(centro);
+		destruir_complejo(constante);
 		return -1;
 	}
 
@@ -304,12 +306,18 @@ int main(int argc, char *argv[]){
 							constante, centro);
 	if (res == -1){
 		perror("Error al calcular intensidades de los pixeles");
+		free(arreglo_de_intensidades);
+		destruir_complejo(centro);
+		destruir_complejo(constante);
 		return -1;
 	}
 
 	res = crear_archivo_pgm(filename, ancho_pixeles, alto_pixeles, arreglo_de_intensidades);
 	if (res == -1){
 		perror("Error al crear el archivo pgm");
+		free(arreglo_de_intensidades);
+		destruir_complejo(centro);
+		destruir_complejo(constante);
 		return -1;
 	}
 
