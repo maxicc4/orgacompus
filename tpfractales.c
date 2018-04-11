@@ -120,9 +120,8 @@ int crear_archivo_pgm(const char *filename, int ancho_pixeles, int alto_pixeles,
 	return 0;
 }
 
-int caso_r(int* anchox,int* altoy,char* optarg){
-    if( strcspn (optarg, "x") > 0 && strcspn (optarg, "x") < strlen(optarg) )	 					//entra 			sihay almenos 1 x y no es al inicio
-    {
+void caso_r(int* anchox,int* altoy,char* optarg){
+    if( strcspn (optarg, "x") > 0 && strcspn (optarg, "x") < strlen(optarg) ){	//entra sihay almenos 1 x y no es al inicio
 	 char str1[20];
 	 memset(&str1[0], 0, sizeof(str1));
 	 int longitud = strcspn (optarg, "x");
@@ -131,43 +130,35 @@ int caso_r(int* anchox,int* altoy,char* optarg){
 	 char *valor2;
 	 valor2 = strchr(optarg, separador);
 	 valor2 = valor2 +1;
-	 if(atoi(str1) > 40 && atoi(valor2) > 40)
-	 {
+	 if(atoi(str1) > 40 && atoi(valor2) > 40){
 	   	*anchox = atoi(str1);
 		*altoy = atoi(valor2);
          }
 	 else{
-		printf("resolucion no valida fin programa0");
-		return -1;
+		 fprintf(stderr, "Error al leer resolucion :");
+		 exit(EXIT_FAILURE);
 	}
     }
     else{
-	printf("resolucion no valida fin programa");
-	return -1;
+    	fprintf(stderr, "Error al leer resolucion : ");
+	exit(EXIT_FAILURE);
     }
-return 0;
 }
 
-int caso_complejo(double* center_x,double* center_y, char* optarg){
+void caso_complejo(double* center_x,double* center_y, char* optarg){
         char valor1[20];
         char *valor2;
-			
-		optarg = optarg + 1;
-		memset(&valor1[0], 0, sizeof(valor1));
-		if(  strcspn(optarg, "+") < strlen(optarg)  
-			|| ( strcspn (optarg, "-") < strlen(optarg) ) )	 					//entra 				sihay almenos 1 + o un - ,y no es al inicio
-		{	
-			if(strcspn (optarg, "+") < strlen(optarg))
-			{
-					
+	optarg = optarg + 1;
+	memset(&valor1[0], 0, sizeof(valor1));
+	if(  strcspn(optarg, "+") < strlen(optarg)  
+		|| ( strcspn (optarg, "-") < strlen(optarg) ) ){//entra sihay almenos 1 + o un - ,y no es al inicio
+			if(strcspn (optarg, "+") < strlen(optarg)){
 				int longitud = strcspn (optarg, "+");
 			        strncat(valor1, optarg-1, longitud+1);
 				const char separador = '+';
-			  		
 		  		valor2 = strchr(optarg, separador);
 		  	}
-			if(strcspn (optarg, "-") < strlen(optarg))
-			{
+			if(strcspn (optarg, "-") < strlen(optarg)){
 				//const char valor1[20];
 				int longitud = strcspn (optarg, "-");
 			        strncat(valor1, optarg-1, longitud+1);
@@ -176,21 +167,20 @@ int caso_complejo(double* center_x,double* center_y, char* optarg){
 			}
 		}
 		else{
-			return -1;}
+			fprintf(stderr, "Error al leer  : numero complejo");
+		 exit(EXIT_FAILURE);}
                 optarg = optarg-1; 
-		if( ( (atof(valor1) != 0) || (valor1[0] == '0') ) && ((atof(valor2) != 0) || (valor2[0] == '0')) )
-		{					
+		if( ( (atof(valor1) != 0) || (valor1[0] == '0') ) && ((atof(valor2) != 0) || (valor2[0] == '0'))){					
 				
-			if(valor2[strlen(valor2)-1] == 'i')					
-			{
+			if(valor2[strlen(valor2)-1] == 'i'){
 		        	*center_x = atof(valor1);
 				*center_y = atof(valor2);
 			}
 		}
 		else {
-		return -1;		
+		fprintf(stderr, "Error al leer numero complejo");
+		 exit(EXIT_FAILURE);
 		}
-return 0;
 }
 
 
@@ -203,10 +193,10 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 	int alto = 480;
 	*center_x = 0;	*center_y = 0;	*seed_x =-0.726895347709114071439;*seed_y = 0.188887129043845954792;
  	archivo = "c";	*anchox = ancho; *altoy = alto; archivo = "-"; int c;
-   int digit_optind = 0;
+
 
    while (1) {
-        int this_option_optind = optind ? optind : 1;
+//        int this_option_optind = optind ? optind : 1;
         int option_index = 0;
         static struct option long_options[] = {
            {"resolution",     required_argument, 0,'r'},
@@ -218,7 +208,7 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
            {0,         0,                 0,  0 }
         };
 
-       c = getopt_long(argc, argv, "r:c:w:H:s:o:02",
+       c = getopt_long(argc, argv, "r:c:w:H:s:o:",
                  long_options, &option_index);
         if (c == -1){
    
@@ -226,24 +216,13 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 	}
        switch (c) {
 
-       case '2':
-            if (digit_optind != 0 && digit_optind != this_option_optind)
-             // printf("digits occur in two different argv-elements.\n");
-            digit_optind = this_option_optind;
-            //printf("option %c\n", c);
-	    return "fin";
-            break;
-
        case 'r':
 	    	
-       	    if( caso_r(anchox,altoy, optarg) == -1 )
-		return "fin";	
-            break;
+       	    caso_r(anchox,altoy, optarg);
+	    break;
 
        case 'c':
-	    if( caso_complejo(center_x,center_y, optarg) == -1 )
-		return "fin";	
-        	     	
+	    caso_complejo(center_x,center_y, optarg);
 	    break;
 
        case 'w':
@@ -251,7 +230,10 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 	    {
             	*w_rec = atof(optarg);
        	    }
-	    else {return "fin";}
+	    else {
+		fprintf(stderr, "Error al leer ancho");
+		exit(EXIT_FAILURE);
+	    }
             break;
 
        case 'H':
@@ -259,41 +241,38 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 	    {
             	*h_rec = atof(optarg);
        	    }
-	    else {return "fin";}
+	    else {
+		fprintf(stderr, "Error al leer altura");
+		exit(EXIT_FAILURE);
+	    }
 	    break;
 
        case 's':
-            if( caso_complejo(seed_x,seed_y, optarg) == -1 )
-		return "fin";	
-		
+            caso_complejo(seed_x,seed_y, optarg);
             break;
 
        case 'o':
-            if(  (strcmp(optarg, "-" ) ) )// si existe el siguiente
+            if(  (strcmp(optarg, "-" ) ) )// si no ingresamos salida por consola
 	    {	
-	    	archivo = optarg;// debemos ver si es un archivo valido
-	    	//printf("%s",archivo);
+	    	archivo = optarg;// nombre que l epondremos al archivo
 	    }
 	    break;
 
 
     case '?':
-	//default:    /* invalid option */
-        fprintf(stderr, "%s: opcion `-%c' es invalido programa terminado\n",
-                argv[0], optopt);
-	return "fin";
+	fprintf(stderr, "%s: opcion `-%c' es invalido programa terminado\n",argv[0], optopt);
+	exit(EXIT_FAILURE);
         break;
         }
     }
 	
    if (optind < argc) {
 	//aca sale si entramos algo q no es opcion
-	
-	printf("no-opcion ARGV-elementos: ");
         while (optind < argc)
-            printf("%s ", argv[optind++]);
+        	printf("%s ", argv[optind++]);
         printf("\n");
-    	return "fin";
+	fprintf(stderr, "Error argumentos no validos ");
+	exit(EXIT_FAILURE);
     }
 	return archivo;
 }
@@ -316,12 +295,6 @@ int main(int argc, char *argv[]){
 	filename = lecturaArgumentos(argc,argv,&ancho_pixeles,&alto_pixeles,&ancho_complejos,&alto_complejos,
 	&center_x,&center_y,&seed_x,&seed_y,filename);	
 	
-	if( (strcmp(filename, "fin" ) == 0 ))
-	{
-		printf("argumentos no validos programa terminado");
-		return -1;
-	}
-
 	printf(" anchopix: %i\n",ancho_pixeles );
 	printf(" altopix: %i\n",alto_pixeles );
 	printf(" anchocomp: %f\n",ancho_complejos );
@@ -339,7 +312,7 @@ int main(int argc, char *argv[]){
 	int* arreglo_de_intensidades = malloc(ancho_pixeles*alto_pixeles*sizeof(int));
 	if (!arreglo_de_intensidades){
 		perror("Error al reservar memoria para la intensidad de pixeles");
-		return -1;
+		exit(EXIT_FAILURE);
 	}
 
 	calcular_intensidades(arreglo_de_intensidades, ancho_pixeles, alto_pixeles,
@@ -350,7 +323,7 @@ int main(int argc, char *argv[]){
 	if (res == -1){
 		perror("Error al crear el archivo pgm");
 		free(arreglo_de_intensidades);
-		return -1;
+		exit(EXIT_FAILURE);
 	}
 
 	free(arreglo_de_intensidades);
