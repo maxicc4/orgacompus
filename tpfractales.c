@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 typedef struct{
 	double parte_real;
@@ -197,7 +198,8 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 	int alto = 480;
 	*center_x = 0;	*center_y = 0;	*seed_x =-0.726895347709114071439;*seed_y = 0.188887129043845954792;
  	archivo = "c";	*anchox = ancho; *altoy = alto; archivo = "-"; int c;
-
+	bool entro[6]= {false , false , false , false , false , false};
+	
 
    while (1) {
 //        int this_option_optind = optind ? optind : 1;
@@ -221,45 +223,71 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
        switch (c) {
 
        case 'r':
-	    	
-       	    caso_r(anchox,altoy, optarg);
+	    if(entro[0] == false )	
+       	    	caso_r(anchox,altoy, optarg);
+	    else{fprintf(stderr, "Error argumento repetido");
+		 exit(EXIT_FAILURE);}
+	    entro[0] = true;
 	    break;
 
        case 'c':
-	    caso_complejo(center_x,center_y, optarg);
+	    
+	     if(entro[1] == false )	
+       	    	caso_complejo(center_x,center_y, optarg);
+	    else{fprintf(stderr, "Error argumento repetido");
+		 exit(EXIT_FAILURE);}
+	    entro[1] = true;
 	    break;
 
        case 'w':
-            if( atof(optarg) >= 0.00001)
-	    {
-            	*w_rec = atof(optarg);
-       	    }
-	    else {
-		fprintf(stderr, "Error al leer ancho");
-		exit(EXIT_FAILURE);
-	    }
+          if(entro[2] == false){ 
+	  	if( atof(optarg) >= 0.00001)
+	  	  {
+          	  	*w_rec = atof(optarg);
+       	  	  }
+	  	  else {
+			fprintf(stderr, "Error al leer ancho");
+			exit(EXIT_FAILURE);
+	  	  }
+	  }
+	  else{fprintf(stderr, "Error argumento repetido");
+		 exit(EXIT_FAILURE);}
+	  entro[2] = true;
             break;
 
        case 'H':
-            if( atof(optarg) >= 0.00001)
-	    {
-            	*h_rec = atof(optarg);
-       	    }
-	    else {
-		fprintf(stderr, "Error al leer altura");
-		exit(EXIT_FAILURE);
-	    }
+          if(entro[3] == false){ 
+	  	if( atof(optarg) >= 0.00001)
+	  	  {
+          	  	*h_rec = atof(optarg);
+       	  	  }
+	  	  else {
+			fprintf(stderr, "Error al leer alto");
+			exit(EXIT_FAILURE);
+	  	  }
+	  }
+	  else{fprintf(stderr, "Error argumento repetido");
+		 exit(EXIT_FAILURE);}
+	  entro[3] = true;
+            break;
+       case 's':
+            if(entro[4] == false )	
+       	    	caso_complejo(seed_x,seed_y, optarg);
+	    else{fprintf(stderr, "Error argumento repetido");
+		 exit(EXIT_FAILURE);}
+	    entro[4] = true;
 	    break;
 
-       case 's':
-            caso_complejo(seed_x,seed_y, optarg);
-            break;
 
        case 'o':
-            if(  (strcmp(optarg, "-" ) ) )// si no ingresamos salida por consola
+         if(entro[5] == false){
+	    if(  (strcmp(optarg, "-" ) ) )// si no ingresamos salida por consola
 	    {	
 	    	archivo = optarg;// nombre que l epondremos al archivo
 	    }
+	 }else{fprintf(stderr, "Error argumento repetido");
+		 exit(EXIT_FAILURE);}
+	  entro[5] = true;
 	    break;
 
 
