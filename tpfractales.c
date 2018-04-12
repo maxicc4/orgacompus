@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <ctype.h>
 
 typedef struct{
 	double parte_real;
@@ -171,11 +172,14 @@ void caso_complejo(double* center_x,double* center_y, char* optarg){
 		 exit(EXIT_FAILURE);}
                 optarg = optarg-1; 
 		if( ( (atof(valor1) != 0) || (valor1[0] == '0') ) && ((atof(valor2) != 0) || (valor2[0] == '0'))){					
-				
-			if(valor2[strlen(valor2)-1] == 'i'){
-		        	*center_x = atof(valor1);
+			
+			if(valor2[strlen(valor2)-1]== 'i'){
+				*center_x = atof(valor1);
 				*center_y = atof(valor2);
 			}
+			else {
+				fprintf(stderr, "Error al leer numero complejo");
+				 exit(EXIT_FAILURE);}
 		}
 		else {
 		fprintf(stderr, "Error al leer numero complejo");
