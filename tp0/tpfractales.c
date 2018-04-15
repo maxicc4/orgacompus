@@ -162,6 +162,7 @@ void caso_complejo(double* center_x,double* center_y, char* optarg){
 		  	}
 			if(strcspn (optarg, "-") < strlen(optarg)){
 				//const char valor1[20];
+				//printf("entro");				
 				int longitud = strcspn (optarg, "-");
 			        strncat(valor1, optarg-1, longitud+1);
 				const char separador = '-';
@@ -199,11 +200,13 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
 	*center_x = 0;	*center_y = 0;	*seed_x =-0.726895347709114071439;*seed_y = 0.188887129043845954792;
  	archivo = "c";	*anchox = ancho; *altoy = alto; archivo = "-"; int c;
 	bool entro[6]= {false , false , false , false , false , false};
-	
+        int digit_optind = 0;
 
    while (1) {
 //        int this_option_optind = optind ? optind : 1;
         int option_index = 0;
+	int this_option_optind = optind ? optind : 1;
+        
         static struct option long_options[] = {
            {"resolution",     required_argument, 0,'r'},
            {"center",     required_argument, 0,'c'},	
@@ -214,13 +217,21 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
            {0,         0,                 0,  0 }
         };
 
-       c = getopt_long(argc, argv, "r:c:w:H:s:o:",
+       c = getopt_long(argc, argv, "r:c:w:H:s:o:02",
                  long_options, &option_index);
         if (c == -1){
    
 	  break;
 	}
        switch (c) {
+
+	case '2':
+            if (digit_optind != 0 && digit_optind != this_option_optind)
+             // printf("digits occur in two different argv-elements.\n");
+            digit_optind = this_option_optind;
+            //printf("option %c\n", c);
+	    return "fin";
+            break;
 
        case 'r':
 	    if(entro[0] == false )	
@@ -233,7 +244,7 @@ const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,doub
        case 'c':
 	    
 	     if(entro[1] == false )	
-       	    	caso_complejo(center_x,center_y, optarg);
+		caso_complejo(center_x,center_y, optarg);
 	    else{fprintf(stderr, "Error argumento repetido");
 		 exit(EXIT_FAILURE);}
 	    entro[1] = true;
@@ -327,7 +338,7 @@ int main(int argc, char *argv[]){
 	filename = lecturaArgumentos(argc,argv,&ancho_pixeles,&alto_pixeles,&ancho_complejos,&alto_complejos,
 	&center_x,&center_y,&seed_x,&seed_y,filename);	
 	
-	/*printf(" anchopix: %i\n",ancho_pixeles );
+	printf(" anchopix: %i\n",ancho_pixeles );
 	printf(" altopix: %i\n",alto_pixeles );
 	printf(" anchocomp: %f\n",ancho_complejos );
 	printf(" altocomplejos: %f\n",alto_complejos );
@@ -335,7 +346,7 @@ int main(int argc, char *argv[]){
 	printf("seedyx: %f\n", seed_y );
 	printf(" centerx: %f\n",center_x );
 	printf("centery: %f\n",center_y );	
-	printf("filename: %s\n",filename );*/
+	printf("filename: %s\n",filename );
 	
 	
 	complejo_t centro = crear_complejo(center_x,center_y);
