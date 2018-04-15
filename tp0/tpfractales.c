@@ -338,15 +338,6 @@ int main(int argc, char *argv[]){
 	filename = lecturaArgumentos(argc,argv,&ancho_pixeles,&alto_pixeles,&ancho_complejos,&alto_complejos,
 	&center_x,&center_y,&seed_x,&seed_y,filename);	
 	
-	printf(" anchopix: %i\n",ancho_pixeles );
-	printf(" altopix: %i\n",alto_pixeles );
-	printf(" anchocomp: %f\n",ancho_complejos );
-	printf(" altocomplejos: %f\n",alto_complejos );
-	printf(" seedx: %f\n",seed_x );
-	printf("seedyx: %f\n", seed_y );
-	printf(" centerx: %f\n",center_x );
-	printf("centery: %f\n",center_y );	
-	printf("filename: %s\n",filename );
 	
 	
 	complejo_t centro = crear_complejo(center_x,center_y);
