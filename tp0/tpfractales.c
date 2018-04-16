@@ -192,7 +192,7 @@ void caso_complejo(double* center_x,double* center_y, char* optarg){
 
 /*Realiza la lectura de los argumentros pasados por consola y todas las validaciones necesarias
 Devuelve '-' salida por consola, o el nombre del archivo destino*/
-const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,double* h_rec,double* w_rec,double* center_x,double* center_y,
+const char* lecturaArgumentos(int argc, char *argv[],int* anchox,int* altoy,double* w_rec,double* h_rec,double* center_x,double* center_y,
 	double* seed_x,double* seed_y,const char* archivo){
 	// pongo valores por defecto 
 	int ancho = 640;
