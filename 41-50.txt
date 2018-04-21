@@ -1,0 +1,24 @@
+	
+	la t0, 16($fp)	# t1 <- &params
+	lw t1, 40(t0)	# t1 <- (params->shades)
+	lw t2, 28(t0)	# t2 <- (params->s_re)
+	lw t3, 32(t0)	# t3 <- (params->s_im)
+
+	addi t4, zero, 0				# c = 0
+			
+loop:	beq t4, t1, exit_loop
+	mul t5, (donde este zr), (donde este zr)	# t5 = zr*zr
+	mul t6, (donde este zi), (donde este zi)	# t6 = zi*zi
+	add t7, t5, t6					# t7 = zr*zr + zi*zi
+	bgt t7, 4, exit_loop
+	sub t8, t5, t6
+	add t8, t2, t8					# t8 <- tr = (parms->s_re) + zr*zr - zi*zi
+	mul t9, (donde este zr), (donde este zi)	# creo que t9 no se puede usar
+	mul t9, t9, 2
+	add t9, t3, t9					# t9 <- ti = (parms->s_im) + zr * zi * 2.0f
+	move (donde este zr), t8			# zr = tr
+	move (donde este zi), t9			# 
+zi = ti
+	addi t4, zero, 1				# c++
+
+exit_loop:
