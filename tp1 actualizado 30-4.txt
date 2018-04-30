@@ -1,0 +1,111 @@
+#include <mips/regdef.h>
+#include <sys/syscall.h>
+
+	·text
+	·abicalls
+	·align 2		# alineacion 2^2
+	·globl mips32_plot
+	·ent mips32_plot
+
+mips32_plot:
+
+	·frame 	$fp, 40, ra	# 40: tamaño del stack frame (ACTUALIZAR)
+
+	
+	# bloque para codigo PIC
+	·set noreorder		# apaga reordenamiento de instrucciones
+	·cpload t9		# directiva usada para codigo PIC
+	·set reorder		# enciende reordenamiento de instrucciones
+
+	# se crea stack frame
+	subu	sp, sp, 40	#(ACTUALIZAR 40)
+
+	# directiva para codigo PIC
+	·cprestore 24		# inserta aqui "sw gp, 24(sp)",
+				# mas "lw gp, 24(sp)" luego de cada jal.
+
+	# salvado de callee-saved regs en SRA	
+	sw	$fp, 28(sp)
+	sw	ra, 32(sp)
+
+	# de aqui al fin de la funcion uso $fp en lugar de sp.
+	move	$fp, sp
+
+	# salvo el argumento
+	sw	a0, 40($fp)
+
+
+	ACA FALTA TRADUCIR LINEAS 16-20
+
+
+	l.d f0, fp2	# f0-f1 <- 2.0
+	l.d f2, fp4	# f2-f3 <- 4.0
+
+	la t0, 16($fp)	# t0 <- &params   	     	#(VER BIEN QUE NUMERO ES EN VEZ DE 16, O USAR A0)
+	l.d f4, 0(t0)	# f4-f5 <- (param->UL_re)
+	l.d f6, 4(t0)	# f6-f7 <- (param->UL_im)
+	l.d f8, 16(t0)	# f8-f9 <- (param->d_re)
+	l.d f10, 20(t0)	# f10-f11 <- (param->d_im)
+	l.d f12, 24(t0)	# f12-f13 <- (params->s_re)
+	l.d f14, 28(t0)	# f14-f15 <- (params->s_im)
+	lw t1, 32(t0)	# t1 <- (param->x_res)
+	lw t2, 36(t0)	# t2 <- (param->y_res)
+	lw t0, 40(t0)	# t0 <- (params->shades)
+	
+
+	addi t3 , zero, 0     				# y = 0
+	mov.d f16, f6					# ci = (parms->UL_im) (F6-F7 ESTA DISPONIBLE)
+
+	addi t4 , zero, 0 				# x = 0	
+	mov.d f18, f4  					# cr = (parms->UL_re) (F4-F5 ESTA DISPONIBLE)
+	
+loop0:  bge t3, t2, exit_loop0 				# (y >= parms->y_res)
+	
+	addi t3, t3, 1   				# y++
+	sub.d f16, f16, f10				# (ci -= parms->d_im)
+
+loop1:  bge t4, t1, exit_loop1				# (x >= parms->x_res)
+
+	addi t4, t4, 1					# x++		
+	add.d f18, f18, f8				# (cr += parms->d_re)	
+
+        mov.d f20, f18 					# zr = cr
+	mov.d f22, f16					# zi = ci
+	
+	addi t5, zero, 0				# c = 0
+
+loop2:	bge t5, t0, exit_loop2
+
+	mul.d f24, f20, f20				# f24-f25 = zr*zr
+	mul.d f26, f22, f22				# f26-f27 = zi*zi
+	add.d f28, f24, f26 				# f28-f29 = zr*zr + zi*zi
+	c.lt.d f28, f2
+	beq fcc, 0, exit_loop2
+	sub.d f4, f24, f26				
+	add.d f4, f4, f12				# f4 <- tr = (parms->s_re) + zr*zr - zi*zi
+	mul.d f6, f20, f22				
+	mul.d f6, f6, f0
+	add.d f6, f6, f14				# f6 <- ti = (parms->s_im) + zr * zi * 2.0f
+	mov.d f20, f4					# zr = tr
+	mov.d f22, f6					# zi = ti
+	addi t5, t5, 1					# c++
+	j loop2
+
+exit_loop2:     # aca sale del tercer for
+
+	ACA FALTA TRADUCIR LINEAS 52-55
+
+	j loop1						# salto de nuevo al loop0 para seguir iterando
+	
+
+exit_loop1:    # aca sale del segundo for  los contadores de los for los incremente mas arriba, debajo de sus respectivos branch de validacion
+
+	j loop0						# salto de nuevo al loop1 para seguir iterando
+
+exit_loop0:    #aca salio del primer for 
+
+	ACA FALTA TRADUCIR LINEAS 59-63
+
+	·rdata
+fp2:	·double 2.0
+fp4:	·double 4.0
