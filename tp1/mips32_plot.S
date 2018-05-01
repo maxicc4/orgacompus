@@ -48,6 +48,7 @@ mips32_plot:
 	sw	t1, 16($fp)		# guardo t1 en el quinto lugar de la ABA para que lo use fprintf
 	jal	fprintf
 
+	# CONTROLAR ERROR DE ESCRITURA
 
 
 
