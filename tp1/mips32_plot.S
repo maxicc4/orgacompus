@@ -55,7 +55,7 @@ mips32_plot:
 	l.s $f0, fp2	# f0 <- 2.0
 	l.s $f1, fp4	# f1 <- 4.0
 
-	la t0, 40($fp)	# t0 <- &params   	     	#(VER BIEN QUE NUMERO ES EN VEZ DE 16, O USAR A0)
+	lw t0, 40($fp)	# t0 <- &params
 	l.s $f2, 0(t0)	# f2 <- (param->UL_re)
 	l.s $f3, 4(t0)	# f3 <- (param->UL_im)
 	l.s $f4, 16(t0)	# f4 <- (param->d_re)
@@ -73,12 +73,12 @@ mips32_plot:
 	addi t4 , zero, 0 				# x = 0	
 	mov.s $f9, $f2  					# cr = (parms->UL_re) (F2 ESTA DISPONIBLE)
 	
-loop0:  bge t3, t2, exit_loop0 				# (y >= parms->y_res)
+loop0:  bgeu t3, t2, exit_loop0 				# (y >= parms->y_res)
 	
 	addi t3, t3, 1   				# y++
 	sub.s $f8, $f8, $f5				# (ci -= parms->d_im)
 
-loop1:  bge t4, t1, exit_loop1				# (x >= parms->x_res)
+loop1:  bgeu t4, t1, exit_loop1				# (x >= parms->x_res)
 
 	addi t4, t4, 1					# x++		
 	add.s $f9, $f9, $f4				# (cr += parms->d_re)	
@@ -88,13 +88,13 @@ loop1:  bge t4, t1, exit_loop1				# (x >= parms->x_res)
 	
 	addi t5, zero, 0				# c = 0
 
-loop2:	bge t5, t0, exit_loop2
-
+loop2:	bgeu t5, t0, exit_loop2
+	
 	mul.s $f12, $f10, $f10				# f12 = zr*zr
 	mul.s $f13, $f11, $f11				# f13 = zi*zi
 	add.s $f14, $f12, $f13 				# f14 = zr*zr + zi*zi
 	c.lt.s $f14, $f1
-	bc1f exit_loop2
+	bc1t exit_loop2
 	sub.s $f2, $f12, $f13				
 	add.s $f2, $f2, $f6				# f2 <- tr = (parms->s_re) + zr*zr - zi*zi
 	mul.s $f3, $f10, $f11				
@@ -114,7 +114,7 @@ exit_loop2:     # aca sale del tercer for
 	# Se imprimen las intensidades
 	lw	a0, 44(t6)
 	la	a1, intensidad
-	li	a2, 100				# ACA HAY QUE IMPRIMIR c (harcodeado por ahora)
+	move	a2, t5
 	jal	fprintf				# OJO QUE AL LLAMAR A fprintf SE PUEDEN PERDER LOS VALORES DE ALGUNOS REGISTROS
 
 
