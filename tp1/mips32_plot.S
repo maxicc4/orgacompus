@@ -37,7 +37,7 @@ mips32_plot:
 	# Pongo el argumento en t0
 	lw	t0, 40($fp)
 	
-	# Se imprime el header PGM en un solo printf
+	# Se imprime el header PGM en un solo fprintf
 	# fprintf(parms->fp,"P2\n%u\n%u\n%u\n",parms->x_res,parms->y_res,parms->shades-1)
 	lw	a0, 44(t0)		# a0 <- (parms->fp)
 	la	a1, encabezado	# a1 <- ("P2\n%u\n%u\n%u\n")
@@ -51,6 +51,84 @@ mips32_plot:
 	# CONTROLAR ERROR DE ESCRITURA
 
 
+
+	l.s $f0, fp2	# f0 <- 2.0
+	l.s $f1, fp4	# f1 <- 4.0
+
+	la t0, 40($fp)	# t0 <- &params   	     	#(VER BIEN QUE NUMERO ES EN VEZ DE 16, O USAR A0)
+	l.s $f2, 0(t0)	# f2 <- (param->UL_re)
+	l.s $f3, 4(t0)	# f3 <- (param->UL_im)
+	l.s $f4, 16(t0)	# f4 <- (param->d_re)
+	l.s $f5, 20(t0)	# f5 <- (param->d_im)
+	l.s $f6, 24(t0)	# f6 <- (params->s_re)
+	l.s $f7, 28(t0)	# f7 <- (params->s_im)
+	lw t1, 32(t0)	# t1 <- (param->x_res)
+	lw t2, 36(t0)	# t2 <- (param->y_res)
+	lw t0, 40(t0)	# t0 <- (params->shades)
+	
+
+	addi t3 , zero, 0     				# y = 0
+	mov.s $f8, $f3					# ci = (parms->UL_im) (F3 ESTA DISPONIBLE)
+
+	addi t4 , zero, 0 				# x = 0	
+	mov.s $f9, $f2  					# cr = (parms->UL_re) (F2 ESTA DISPONIBLE)
+	
+loop0:  bge t3, t2, exit_loop0 				# (y >= parms->y_res)
+	
+	addi t3, t3, 1   				# y++
+	sub.s $f8, $f8, $f5				# (ci -= parms->d_im)
+
+loop1:  bge t4, t1, exit_loop1				# (x >= parms->x_res)
+
+	addi t4, t4, 1					# x++		
+	add.s $f9, $f9, $f4				# (cr += parms->d_re)	
+
+        mov.s $f10, $f9 					# zr = cr	OJO ORDEN!
+	mov.s $f11, $f8					# zi = ci	OJO ORDEN! VS ACTUALIZAR CR Y CI
+	
+	addi t5, zero, 0				# c = 0
+
+loop2:	bge t5, t0, exit_loop2
+
+	mul.s $f12, $f10, $f10				# f12 = zr*zr
+	mul.s $f13, $f11, $f11				# f13 = zi*zi
+	add.s $f14, $f12, $f13 				# f14 = zr*zr + zi*zi
+	c.lt.s $f14, $f1
+	beq fcc, 0, exit_loop2
+	sub.s $f2, $f12, $f13				
+	add.s $f2, $f2, $f6				# f2 <- tr = (parms->s_re) + zr*zr - zi*zi
+	mul.s $f3, $f10, $f11				
+	mul.s $f3, $f3, $f0
+	add.s $f3, $f3, $f7				# f3 <- ti = (parms->s_im) + zr * zi * 2.0f
+	mov.s $f10, $f2					# zr = tr
+	mov.s $f11, $f3					# zi = ti
+	addi t5, t5, 1					# c++
+	j loop2
+
+exit_loop2:     # aca sale del tercer for
+
+
+	# Pongo el argumento en t6
+	lw	t6, 40($fp)
+
+	# Se imprimen las intensidades
+	lw	a0, 44(t6)
+	la	a1, intensidad
+	li	a2, 100				# ACA HAY QUE IMPRIMIR c (harcodeado por ahora)
+	jal	fprintf				# OJO QUE AL LLAMAR A fprintf SE PUEDEN PERDER LOS VALORES DE ALGUNOS REGISTROS
+
+
+
+	j loop1						# salto de nuevo al loop0 para seguir iterando
+	
+
+exit_loop1:    # aca sale del segundo for  los contadores de los for los incremente mas arriba, debajo de sus respectivos branch de validacion
+
+	j loop0						# salto de nuevo al loop1 para seguir iterando
+
+exit_loop0:    #aca salio del primer for 
+
+	#ACA FALTA TRADUCIR LINEAS 59-63
 
 	# return;
 	# restauro callee-saved regs
@@ -67,5 +145,11 @@ mips32_plot:
 	
 
 	.rdata			# segmento read-only data
+fp2:
+	.float 2.0
+fp4:
+	.float 4.0
 encabezado:
 	.asciiz "P2\n%u\n%u\n%u\n"
+intensidad:
+	.asciiz "%u\n"
