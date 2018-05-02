@@ -94,7 +94,7 @@ loop2:	bge t5, t0, exit_loop2
 	mul.s $f13, $f11, $f11				# f13 = zi*zi
 	add.s $f14, $f12, $f13 				# f14 = zr*zr + zi*zi
 	c.lt.s $f14, $f1
-	beq fcc, 0, exit_loop2
+	bc1f exit_loop2
 	sub.s $f2, $f12, $f13				
 	add.s $f2, $f2, $f6				# f2 <- tr = (parms->s_re) + zr*zr - zi*zi
 	mul.s $f3, $f10, $f11				
