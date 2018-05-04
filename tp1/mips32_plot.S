@@ -77,21 +77,21 @@ mips32_plot:
 
 	addi s3 , zero, 0     				# y = 0
 	mov.s $f8, $f3					# ci = (parms->UL_im) (F3 ESTA DISPONIBLE)
-
-	addi s4 , zero, 0 				# x = 0	
-	mov.s $f9, $f2  					# cr = (parms->UL_re) (F2 ESTA DISPONIBLE)
 	
 loop0:  bgeu s3, s2, exit_loop0 				# (y >= parms->y_res)
 	
 	addi s3, s3, 1   				# y++
 	sub.s $f8, $f8, $f5				# (ci -= parms->d_im)
 
+	addi s4 , zero, 0 				# x = 0
+	mov.s $f9, $f2  				# cr = (parms->UL_re)
+
 loop1:  bgeu s4, s1, exit_loop1				# (x >= parms->x_res)
 
 	addi s4, s4, 1					# x++		
 	add.s $f9, $f9, $f4				# (cr += parms->d_re)	
 
-        mov.s $f10, $f9 					# zr = cr	OJO ORDEN!
+    mov.s $f10, $f9 				# zr = cr	OJO ORDEN!
 	mov.s $f11, $f8					# zi = ci	OJO ORDEN! VS ACTUALIZAR CR Y CI
 	
 	addi s5, zero, 0				# c = 0
@@ -103,12 +103,12 @@ loop2:	bgeu s5, s0, exit_loop2
 	add.s $f14, $f12, $f13 				# f14 = zr*zr + zi*zi
 	c.lt.s $f14, $f1
 	bc1f exit_loop2
-	sub.s $f2, $f12, $f13				
-	add.s $f2, $f2, $f6				# f2 <- tr = (parms->s_re) + zr*zr - zi*zi
+	sub.s $f15, $f12, $f13				
+	add.s $f15, $f15, $f6				# f15 <- tr = (parms->s_re) + zr*zr - zi*zi
 	mul.s $f3, $f10, $f11				
 	mul.s $f3, $f3, $f0
 	add.s $f3, $f3, $f7				# f3 <- ti = (parms->s_im) + zr * zi * 2.0f
-	mov.s $f10, $f2					# zr = tr
+	mov.s $f10, $f15				# zr = tr
 	mov.s $f11, $f3					# zi = ti
 	addi s5, s5, 1					# c++
 	j loop2
