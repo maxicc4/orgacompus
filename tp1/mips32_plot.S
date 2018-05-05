@@ -155,6 +155,30 @@ exit_loop0:    #aca salio del primer for
 
 	#ACA FALTA TRADUCIR LINEAS 59-63
 
+
+	lw	a0, 44(t0)
+	jal	fflush
+	bnez	v0, exit_cannotflush		# if (fflush(parms->fp) != 0)
+	
+	j exit_withouterror	
+
+exit_cannotflush:
+	
+	# write(2, "cannot flush output file.\n", 11);
+	# 2 es el file descriptor de stderr
+	li	a0, 2
+	la	a1, cannotflush
+	li	a2, 11
+	li	v0, SYS_write
+	syscall
+
+	# exit(1);
+	li	a0, 1
+	li	v0, SYS_exit
+	syscall
+
+exit_withouterror:
+
 	# return;
 	# restauro callee-saved regs
 	lw	s0, 24(sp)
@@ -183,8 +207,11 @@ fp2:
 fp4:
 	.float 4.0
 encabezado:
-	.asciiz "P2\n%u\n%u\n%u\n"
+	.asciiz "P222\n%u\n%u\n%u\n"
 intensidad:
 	.asciiz "%u\n"
 errorio:
 	.asciiz "i/o error.\n"
+cannotflush:
+	.asciiz "cannot flush output file.\n"
+
