@@ -23,6 +23,13 @@
 #define optional_argument 2
 #endif
 
+#define PLUS_OR_MINUS(c)  ((c) == '+' || (c) == '-')
+#define IMAGINARY_UNIT(x) ((x) == 'i' || (x) == 'j')
+#define MINIMUM(x, y) ((x) <= (y) ? (x) : (y))
+#define MAXIMUM(x, y) ((x) >= (y) ? (x) : (y))
+#define SIGN(c) ((c) == '-' ? -1.0 : +1.0)
+
+
 static void do_plot(void);
 extern void mips32_plot(param_t *);
 
@@ -45,7 +52,7 @@ static void parse_cmdline(int, char * const []);
 static void do_usage(const char *, int);
 static void do_version(const char *);
 static void do_resolution(const char *, const char *);
-static void do_geometry(const char *, const char *);
+static void do_seed(const char *, const char *);
 static void do_center(const char *, const char *);
 static void do_width(const char *, const char *);
 static void do_height(const char *, const char *);
@@ -70,7 +77,7 @@ parse_cmdline(int argc, char * const argv[])
 	struct option options[] = {
 		{"help", no_argument, NULL, 'h'},
 		{"version", no_argument, NULL, 'V'},
-		{"geometry", required_argument, NULL, 'g'},
+		{"seed", required_argument, NULL, 's'},
 		{"resolution", required_argument, NULL, 'r'},
 		{"center", required_argument, NULL, 'c'},
 		{"width", required_argument, NULL, 'w'},
@@ -79,7 +86,7 @@ parse_cmdline(int argc, char * const argv[])
 	};
 
 	while ((ch = getopt_long(argc, argv, 
-	                         "hc:H:m:o:r:w:g:V", options, &index)) != -1) {
+	                         "hc:H:m:o:r:w:s:V", options, &index)) != -1) {
 		switch (ch) {
 		case 'h':
 			do_usage(argv[0], 0);
@@ -87,8 +94,8 @@ parse_cmdline(int argc, char * const argv[])
 		case 'V':
 			do_version(argv[0]);
 			break;
-		case 'g':
-			do_geometry(argv[0], optarg);
+		case 's':
+			do_seed(argv[0], optarg);
 			break;
 		case 'r':
 			do_resolution(argv[0], optarg);
@@ -132,6 +139,8 @@ do_usage(const char *name, int status)
 	                " Set bitmap resolution to WxH pixels.\n");
 	fprintf(stderr, "  -c, --center     "
 	                " Set coordinates for the center of the image.\n");
+	fprintf(stderr, "  -s, --seed       "
+	                " Set seed of the Julia set.\n");
 	fprintf(stderr, "  -w, --width      "
 	                " Change the width of the spanned region.\n");
 	fprintf(stderr, "  -H, --height     "
@@ -172,59 +181,29 @@ do_resolution(const char *name, const char *spec)
 }
 
 static void
-do_geometry(const char *name, const char *spec)
+do_seed(const char *name, const char *spec)
 {
-	double re_1, im_1;
-	double re_2, im_2;
-	char comma;
-	char sg_1;
-	char sg_2;
-	char ii_1;
-	char ii_2;
+	double re, im;
+	char ii;
+	char sg;
 	char ch;
 
-#define PLUS_OR_MINUS(c)  ((c) == '+' || (c) == '-')
-#define IMAGINARY_UNIT(x) ((x) == 'i' || (x) == 'j')
-
 	if (sscanf(spec, 
-	           "%lf %c %lf %c %c %lf %c %lf %c %c", 
-	           &re_1,
-	           &sg_1,
-	           &im_1,
-	           &ii_1,
-	           &comma,
-	           &re_2,
-	           &sg_2,
-	           &im_2,
-	           &ii_2,
-	           &ch) != 9
-	    || !PLUS_OR_MINUS(sg_1)
-	    || !PLUS_OR_MINUS(sg_2)
-	    || !IMAGINARY_UNIT(ii_1)
-	    || !IMAGINARY_UNIT(ii_2)
-	    || comma != ',') {
-		fprintf(stderr, "invalid geometry specification.\n");
+	           "%lf %c %lf %c %c", 
+	           &re,
+	           &sg,
+	           &im,
+	           &ii,
+	           &ch) != 4
+	    || !PLUS_OR_MINUS(sg)
+	    || !IMAGINARY_UNIT(ii)) {
+		fprintf(stderr, "invalid seed specification.\n");
 		exit(1);
 	}
 
-#define MINIMUM(x, y) ((x) <= (y) ? (x) : (y))
-#define MAXIMUM(x, y) ((x) >= (y) ? (x) : (y))
-#define SIGN(c) ((c) == '-' ? -1.0 : +1.0)
-
-	/* Sign-adjust. */
-	im_1 *= SIGN(sg_1);
-	im_2 *= SIGN(sg_2);
-
-	/*
-	 * We have two edges of the rectangle. Now, find the upper-left 
-	 * (i.e. the one with minimum real part and maximum imaginary
-	 * part) and lower-right (maximum real part, minimum imaginary)
-	 * corners of the rectangle.
-	 */
-	upper_left_re = MINIMUM(re_1, re_2);
-	upper_left_im = MAXIMUM(im_1, im_2);
-	lower_right_re = MAXIMUM(re_1, re_2);
-	lower_right_im = MINIMUM(im_1, im_2);
+	im *= SIGN(sg);
+	seed_re = re;
+	seed_im = im;
 }
 
 static void
@@ -349,14 +328,14 @@ do_plot(void)
 	parms.UL_im = upper_left_im;
 	parms.LR_re = lower_right_re;
 	parms.LR_im = lower_right_im;
-        parms.d_re = (lower_right_re - upper_left_re) / x_res;
-        parms.d_im = (upper_left_im - lower_right_im) / y_res;
-        parms.s_re = seed_re;
+	parms.d_re = (lower_right_re - upper_left_re) / x_res;
+	parms.d_im = (upper_left_im - lower_right_im) / y_res;
+	parms.s_re = seed_re;
 	parms.s_im = seed_im;
 	parms.x_res = x_res;
-        parms.y_res = y_res;
-        parms.shades = 256;
-        parms.fp = output;
+	parms.y_res = y_res;
+	parms.shades = 256;
+	parms.fp = output;
 
 	plot(&parms);
 }
