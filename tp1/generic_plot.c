@@ -4,7 +4,7 @@
 #include <param.h>
 
 void
-mips32_plot(param_t *parms)
+generic_plot(param_t *parms)
 {
 	float cr, ci;
 	float zr, zi;
