@@ -56,8 +56,8 @@ mips32_plot:
 	sw	t1, 16($fp)		# guardo t1 en el quinto lugar de la ABA para que lo use fprintf
 	jal	fprintf
 
-	# CONTROLAR ERROR DE ESCRITURA
-
+	# CONTROLA ERROR DE ESCRITURA
+	bltz	v0, exit_error_io		# if (resultado fprintf < 0) -> ERROR
 
 
 	l.s $f0, fp2	# f0 <- 2.0
@@ -119,13 +119,15 @@ exit_loop2:     # aca sale del tercer for
 	# Pongo el argumento en t0
 	lw	t0, 72($fp)
 
-	# Se imprimen las intensidades
+	# Se imprime la intensidad
+	# fprintf(parms->fp, "%u\n", c);
 	lw	a0, 44(t0)
 	la	a1, intensidad
 	move	a2, s5
-	jal	fprintf				# OJO QUE AL LLAMAR A fprintf SE PUEDEN PERDER LOS VALORES DE ALGUNOS REGISTROS
+	jal	fprintf
 
-
+	# CONTROLA ERROR DE ESCRITURA
+	bltz	v0, exit_error_io		# if (resultado fprintf < 0) -> ERROR
 
 	j loop1						# salto de nuevo al loop0 para seguir iterando
 	
@@ -133,6 +135,21 @@ exit_loop2:     # aca sale del tercer for
 exit_loop1:    # aca sale del segundo for  los contadores de los for los incremente mas arriba, debajo de sus respectivos branch de validacion
 
 	j loop0						# salto de nuevo al loop1 para seguir iterando
+
+exit_error_io:
+
+	# write(2, "i/o error.\n", 11);
+	# 2 es el file descriptor de stderr
+	li	a0, 2
+	la	a1, errorio
+	li	a2, 11
+	li	v0, SYS_write
+	syscall
+
+	# exit(1);
+	li	a0, 1
+	li	v0, SYS_exit
+	syscall
 
 exit_loop0:    #aca salio del primer for 
 
@@ -169,3 +186,5 @@ encabezado:
 	.asciiz "P2\n%u\n%u\n%u\n"
 intensidad:
 	.asciiz "%u\n"
+errorio:
+	.asciiz "i/o error.\n"
