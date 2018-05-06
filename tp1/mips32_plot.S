@@ -81,15 +81,13 @@ mips32_plot:
 loop0:  bgeu s3, s2, exit_loop0 				# (y >= parms->y_res)
 	
 	addi s3, s3, 1   				# y++
-	sub.s $f8, $f8, $f5				# (ci -= parms->d_im)
 
 	addi s4 , zero, 0 				# x = 0
 	mov.s $f9, $f2  				# cr = (parms->UL_re)
 
 loop1:  bgeu s4, s1, exit_loop1				# (x >= parms->x_res)
 
-	addi s4, s4, 1					# x++		
-	add.s $f9, $f9, $f4				# (cr += parms->d_re)	
+	addi s4, s4, 1					# x++			
 
     mov.s $f10, $f9 				# zr = cr	OJO ORDEN!
 	mov.s $f11, $f8					# zi = ci	OJO ORDEN! VS ACTUALIZAR CR Y CI
@@ -129,11 +127,12 @@ exit_loop2:     # aca sale del tercer for
 	# CONTROLA ERROR DE ESCRITURA
 	bltz	v0, exit_error_io		# if (resultado fprintf < 0) -> ERROR
 
+	add.s $f9, $f9, $f4				# (cr += parms->d_re)
 	j loop1						# salto de nuevo al loop0 para seguir iterando
 	
 
 exit_loop1:    # aca sale del segundo for  los contadores de los for los incremente mas arriba, debajo de sus respectivos branch de validacion
-
+	sub.s $f8, $f8, $f5				# (ci -= parms->d_im)
 	j loop0						# salto de nuevo al loop1 para seguir iterando
 
 exit_error_io:
