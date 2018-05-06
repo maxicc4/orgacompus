@@ -153,8 +153,8 @@ exit_error_io:
 
 exit_loop0:    #aca salio del primer for 
 
-	#ACA FALTA TRADUCIR LINEAS 59-63
-
+	# Pongo el argumento en t0
+	lw	t0, 72($fp)
 
 	lw	a0, 44(t0)
 	jal	fflush
@@ -164,11 +164,11 @@ exit_loop0:    #aca salio del primer for
 
 exit_cannotflush:
 	
-	# write(2, "cannot flush output file.\n", 11);
+	# write(2, "cannot flush output file.\n", 26);
 	# 2 es el file descriptor de stderr
 	li	a0, 2
 	la	a1, cannotflush
-	li	a2, 11
+	li	a2, 26
 	li	v0, SYS_write
 	syscall
 
@@ -207,7 +207,7 @@ fp2:
 fp4:
 	.float 4.0
 encabezado:
-	.asciiz "P222\n%u\n%u\n%u\n"
+	.asciiz "P2\n%u\n%u\n%u\n"
 intensidad:
 	.asciiz "%u\n"
 errorio:
