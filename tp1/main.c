@@ -35,7 +35,7 @@ extern void generic_plot(param_t *);
 extern void mips32_plot(param_t *);
 
 /*
- * Parámetros globales.
+ * Parametros globales.
  */
 
 int x_res = 640;		/* Ancho de imagen por defecto. */

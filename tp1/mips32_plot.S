@@ -12,7 +12,7 @@
 mips32_plot:
 
 	.frame	$fp, 72, ra				# $fp: registro usado como frame pointer
-							# 72: tamañodel stack frame
+							# 72: tamano del stack frame
 							# ra: registro que almacena el return address
 	
 	# Bloque para codigo PIC
