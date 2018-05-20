@@ -11,9 +11,9 @@
 	
 mips32_plot:
 
-	.frame	$fp, 88, ra				# $fp: registro usado como frame pointer
-							# 88: tamano del stack frame
-							# ra: registro que almacena el return address
+	.frame	$fp, 128, ra			# $fp: registro usado como frame pointer
+									# 128: tamano del stack frame
+									# ra: registro que almacena el return address
 	
 	# Bloque para codigo PIC
 	.set	noreorder				# Apaga reordenamiento de instrucciones
@@ -21,65 +21,64 @@ mips32_plot:
 	.set	reorder					# Enciende reordenamiento de instrucciones
 
 	# Se crea stack frame
-	subu	sp, sp, 88				# 4 (ABA) + 6 (LTA) + 12 (SRA: s0..s7,gp,fp,ra,offset)
+	subu	sp, sp, 128				# 4 (ABA) + 6 (LTA) + 10 (FRA) + 12 (SRA: s0..s7,gp,fp,ra,offset)
 
 	# Directiva para codigo PIC
-	.cprestore 72					# inserta aqui "sw gp, 72(sp)",
-							# mas "lw gp, 72(sp)" luego de cada jal.
+	.cprestore 112					# inserta aqui "sw gp, 112(sp)",
+							# mas "lw gp, 112(sp)" luego de cada jal.
 	# Salvado de callee-saved regs en SRA
-	sw	s0, 40(sp)
-	sw	s1, 44(sp)
-	sw	s2, 48(sp)
-	sw	s3, 52(sp)
-	sw	s4, 56(sp)
-	sw	s5, 60(sp)
-	sw	s6, 64(sp)
-	sw	s7, 68(sp)
-	sw	$fp, 76(sp)
-	sw	ra, 80(sp)
+	sw	s0, 80(sp)
+	sw	s1, 84(sp)
+	sw	s2, 88(sp)
+	sw	s3, 92(sp)
+	sw	s4, 96(sp)
+	sw	s5, 100(sp)
+	sw	s6, 104(sp)
+	sw	s7, 108(sp)
+	sw	$fp, 116(sp)
+	sw	ra, 120(sp)
 
-#	(HABRIA QUE AGRANDAR EL STACK FRAME Y GUARDAR REGISTROS F20-F28 EN FPA)
-#	(CREO QUE HAY QUE SUMAR 10registrosX4bytes/registro=40 AL STACK FRAME)
-#	s.s	$f20, ALGO(sp)
-#	s.s	$f22, ALGO(sp)
-#	s.s	$f24, ALGO(sp)
-#	s.s	$f26, ALGO(sp)
-#	s.s	$f28, ALGO(sp)
+	# Se salvan los regs float en FRA
+	s.s	$f20, 40(sp)
+	s.s	$f22, 48(sp)
+	s.s	$f24, 56(sp)
+	s.s	$f26, 64(sp)
+	s.s	$f28, 72(sp)
 
 	# De aqui al fin de la funcion uso $fp en lugar de sp.
 	move	$fp, sp
 
 	# Salvo el argumento
-	sw	a0, 88($fp)
+	sw	a0, 128($fp)
 
 	# Se imprime "P2\n"
 	la	a1, encabezado			# a1 <- ("P2\n")
 	li	a2, 3
 	jal	_write
+	bltz	v0, exit_error_io	# Control de error de escritura
 
 	# Se imprime (parms->x_res)
-	lw	t0, 88($fp)				# t0 <- (parms)
+	lw	t0, 128($fp)				# t0 <- (parms)
 	lw	a0, 32(t0)				# a0 <- (parms->x_res)
 	jal	_write_number
+	bltz	v0, exit_error_io	# Control de error de escritura
 	# Se imprime (parms->y_res)
-	lw	t0, 88($fp)				# t0 <- (parms)
+	lw	t0, 128($fp)				# t0 <- (parms)
 	lw	a0, 36(t0)				# a0 <- (parms->y_res)
 	jal	_write_number
+	bltz	v0, exit_error_io	# Control de error de escritura
 	# Se imprime (parms->shades - 1)
-	lw	t0, 88($fp)				# t0 <- (parms)
+	lw	t0, 128($fp)				# t0 <- (parms)
 	lw	a0, 40(t0)				# a0 <- (parms->shades)
 	addiu a0, a0, -1				# a0 = a0 - 1
 	jal	_write_number
-
-
-	# Control de error de escritura
-	bltz	v0, exit_error_io
+	bltz	v0, exit_error_io	# Control de error de escritura
 
 
 	l.s $f0, fp2		# f0 <- 2.0
 	l.s $f2, fp4		# f2 <- 4.0
 
-	lw t0, 88($fp)		# t0 <- &params
+	lw t0, 128($fp)		# t0 <- &params
 	l.s $f4, 0(t0)		# f4 <- (param->UL_re)
 	l.s $f6, 4(t0)		# f6 <- (param->UL_im)
 	l.s $f8, 16(t0)		# f8 <- (param->d_re)
@@ -132,9 +131,7 @@ exit_loop2:
 	# Se imprime la intensidad
 	move	a0, s5
 	jal	_write_number
-
-	# Control de error de escritura
-	bltz	v0, exit_error_io
+	bltz	v0, exit_error_io	# Control de error de escritura
 
 	add.s $f18, $f18, $f8				# (cr += parms->d_re)
 	j loop1
@@ -163,7 +160,7 @@ exit_error_io:
 exit_loop0: 
 
 	# Pongo el argumento en t0
-	lw	t0, 88($fp)
+	lw	t0, 128($fp)
 
 	lw	a0, 44(t0)
 	jal	fflush
@@ -190,19 +187,27 @@ exit_withouterror:
 
 	# return;
 	# Restauro callee-saved regs
-	lw	s0, 40(sp)
-	lw	s1, 44(sp)
-	lw	s2, 48(sp)
-	lw	s3, 52(sp)
-	lw	s4, 56(sp)
-	lw	s5, 60(sp)
-	lw	s6, 64(sp)
-	lw	s7, 68(sp)
-	lw	gp, 72(sp)
-	lw	$fp, 76(sp)
-	lw	ra, 80(sp)
+	lw	s0, 80(sp)
+	lw	s1, 84(sp)
+	lw	s2, 88(sp)
+	lw	s3, 92(sp)
+	lw	s4, 96(sp)
+	lw	s5, 100(sp)
+	lw	s6, 104(sp)
+	lw	s7, 108(sp)
+	lw	gp, 112(sp)
+	lw	$fp, 116(sp)
+	lw	ra, 120(sp)
+
+	# Se restauran los regs float
+	l.s	$f20, 40(sp)
+	l.s	$f22, 48(sp)
+	l.s	$f24, 56(sp)
+	l.s	$f26, 64(sp)
+	l.s	$f28, 72(sp)
+
 	# Destruyo stack frame
-	addu	sp, sp, 88
+	addu	sp, sp, 128
 	# Vuelvo a funcion llamante
 	jr	ra
 
@@ -252,7 +257,7 @@ print_digit:
 _write:
 	
 	sw	ra, 36($fp)				# Salvo el ra de _write en LTA
-	lw	t0, 88($fp)				# t0 <- (parms)
+	lw	t0, 128($fp)				# t0 <- (parms)
 	lw	t1, 44(t0)				# t1 <- (parms->fp)
 	# Se obtiene el file descriptor a traves del file pointer
 	lhu	a0, 14(t1)				# a0 <- (fp->_file)
