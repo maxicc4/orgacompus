@@ -40,10 +40,15 @@ mips32_plot:
 
 	# Se salvan los regs float en FRA
 	s.s	$f20, 40(sp)
+	s.s	$f21, 44(sp)
 	s.s	$f22, 48(sp)
+	s.s	$f23, 52(sp)
 	s.s	$f24, 56(sp)
+	s.s	$f25, 60(sp)
 	s.s	$f26, 64(sp)
+	s.s	$f27, 68(sp)
 	s.s	$f28, 72(sp)
+	s.s	$f29, 76(sp)
 
 	# De aqui al fin de la funcion uso $fp en lugar de sp.
 	move	$fp, sp
@@ -201,10 +206,15 @@ exit_withouterror:
 
 	# Se restauran los regs float
 	l.s	$f20, 40(sp)
+	l.s	$f21, 44(sp)
 	l.s	$f22, 48(sp)
+	l.s	$f23, 52(sp)
 	l.s	$f24, 56(sp)
+	l.s	$f25, 60(sp)
 	l.s	$f26, 64(sp)
+	l.s	$f27, 68(sp)
 	l.s	$f28, 72(sp)
+	l.s	$f29, 76(sp)
 
 	# Destruyo stack frame
 	addu	sp, sp, 128
