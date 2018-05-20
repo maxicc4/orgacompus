@@ -38,6 +38,14 @@ mips32_plot:
 	sw	$fp, 76(sp)
 	sw	ra, 80(sp)
 
+#	(HABRIA QUE AGRANDAR EL STACK FRAME Y GUARDAR REGISTROS F20-F28 EN FPA)
+#	(CREO QUE HAY QUE SUMAR 10registrosX4bytes/registro=40 AL STACK FRAME)
+#	s.s	$f20, ALGO(sp)
+#	s.s	$f22, ALGO(sp)
+#	s.s	$f24, ALGO(sp)
+#	s.s	$f26, ALGO(sp)
+#	s.s	$f28, ALGO(sp)
+
 	# De aqui al fin de la funcion uso $fp en lugar de sp.
 	move	$fp, sp
 
@@ -68,54 +76,54 @@ mips32_plot:
 	bltz	v0, exit_error_io
 
 
-	l.s $f0, fp2	# f0 <- 2.0
-	l.s $f1, fp4	# f1 <- 4.0
+	l.s $f0, fp2		# f0 <- 2.0
+	l.s $f2, fp4		# f2 <- 4.0
 
-	lw t0, 88($fp)	# t0 <- &params
-	l.s $f2, 0(t0)	# f2 <- (param->UL_re)
-	l.s $f3, 4(t0)	# f3 <- (param->UL_im)
-	l.s $f4, 16(t0)	# f4 <- (param->d_re)
-	l.s $f5, 20(t0)	# f5 <- (param->d_im)
-	l.s $f6, 24(t0)	# f6 <- (params->s_re)
-	l.s $f7, 28(t0)	# f7 <- (params->s_im)
-	lw s1, 32(t0)	# s1 <- (param->x_res)
-	lw s2, 36(t0)	# s2 <- (param->y_res)
-	lw s0, 40(t0)	# s0 <- (params->shades)
+	lw t0, 88($fp)		# t0 <- &params
+	l.s $f4, 0(t0)		# f4 <- (param->UL_re)
+	l.s $f6, 4(t0)		# f6 <- (param->UL_im)
+	l.s $f8, 16(t0)		# f8 <- (param->d_re)
+	l.s $f10, 20(t0)	# f10 <- (param->d_im)
+	l.s $f12, 24(t0)	# f12 <- (params->s_re)
+	l.s $f14, 28(t0)	# f14 <- (params->s_im)
+	lw s1, 32(t0)		# s1 <- (param->x_res)
+	lw s2, 36(t0)		# s2 <- (param->y_res)
+	lw s0, 40(t0)		# s0 <- (params->shades)
 	
 
 	addi s3 , zero, 0     				# y = 0
-	mov.s $f8, $f3					# ci = (parms->UL_im) (f3 esta disponible)
+	mov.s $f16, $f6					# ci = (parms->UL_im) (f6 esta disponible)
 	
 loop0:  bgeu s3, s2, exit_loop0 			# (y >= parms->y_res)
 	
 	addi s3, s3, 1   				# y++
 
 	addi s4 , zero, 0 				# x = 0
-	mov.s $f9, $f2  				# cr = (parms->UL_re)
+	mov.s $f18, $f4  				# cr = (parms->UL_re)
 
 loop1:  bgeu s4, s1, exit_loop1				# (x >= parms->x_res)
 
 	addi s4, s4, 1					# x++
 	
-	mov.s $f10, $f9 				# zr = cr
-	mov.s $f11, $f8					# zi = ci
+	mov.s $f20, $f18 				# zr = cr
+	mov.s $f22, $f16				# zi = ci
 	
 	addi s5, zero, 0				# c = 0
 
 loop2:	bgeu s5, s0, exit_loop2
 	
-	mul.s $f12, $f10, $f10				# f12 = zr*zr
-	mul.s $f13, $f11, $f11				# f13 = zi*zi
-	add.s $f14, $f12, $f13 				# f14 = zr*zr + zi*zi
-	c.lt.s $f14, $f1
+	mul.s $f24, $f20, $f20				# f24 = zr*zr
+	mul.s $f26, $f22, $f22				# f26 = zi*zi
+	add.s $f28, $f24, $f26 				# f28 = zr*zr + zi*zi
+	c.lt.s $f28, $f2
 	bc1f exit_loop2
-	sub.s $f15, $f12, $f13				
-	add.s $f15, $f15, $f6				# f15 <- tr = (parms->s_re) + zr*zr - zi*zi
-	mul.s $f3, $f10, $f11				
-	mul.s $f3, $f3, $f0
-	add.s $f3, $f3, $f7				# f3 <- ti = (parms->s_im) + zr * zi * 2.0f
-	mov.s $f10, $f15				# zr = tr
-	mov.s $f11, $f3					# zi = ti
+	sub.s $f28, $f24, $f26				
+	add.s $f28, $f28, $f12				# f28 <- tr = (parms->s_re) + zr*zr - zi*zi
+	mul.s $f6, $f20, $f22				
+	mul.s $f6, $f6, $f0
+	add.s $f6, $f6, $f14				# f6 <- ti = (parms->s_im) + zr * zi * 2.0f
+	mov.s $f20, $f28				# zr = tr
+	mov.s $f22, $f6					# zi = ti
 	addi s5, s5, 1					# c++
 	j loop2
 
@@ -128,13 +136,13 @@ exit_loop2:
 	# Control de error de escritura
 	bltz	v0, exit_error_io
 
-	add.s $f9, $f9, $f4				# (cr += parms->d_re)
+	add.s $f18, $f18, $f8				# (cr += parms->d_re)
 	j loop1
 	
 
 exit_loop1:
 
-	sub.s $f8, $f8, $f5				# (ci -= parms->d_im)
+	sub.s $f16, $f16, $f10				# (ci -= parms->d_im)
 	j loop0
 
 exit_error_io:
