@@ -57,9 +57,9 @@ mips32_plot:
 	lw	t0, 88($fp)				# t0 <- (parms)
 	lw	a0, 36(t0)				# a0 <- (parms->y_res)
 	jal	_write_number
-	# Se imprime (parms->shades)
+	# Se imprime (parms->shades - 1)
 	lw	t0, 88($fp)				# t0 <- (parms)
-	lw	a0, 40(t0)				# a0 <- (parms->shades - 1)
+	lw	a0, 40(t0)				# a0 <- (parms->shades)
 	addiu a0, a0, -1				# a0 = a0 - 1
 	jal	_write_number
 
