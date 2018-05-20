@@ -137,7 +137,7 @@ do_usage(const char *name, int status)
 	fprintf(stderr, "  %s [options]\n", name);
 	fprintf(stderr, "Options:\n");
 	fprintf(stderr, "  -r, --resolution "
-	                " Set bitmap resolution to WxH pixels.\n");
+	                " Set bitmap resolution to WxH pixels. 0 < W,H < 9999\n");
 	fprintf(stderr, "  -c, --center     "
 	                " Set coordinates for the center of the image.\n");
 	fprintf(stderr, "  -s, --seed       "
@@ -173,7 +173,9 @@ do_resolution(const char *name, const char *spec)
 	if (sscanf(spec, "%d%c%d %c", &x, &c, &y, &d) != 3
 	    || x <= 0
 	    || c != 'x'
-	    || y <= 0)
+	    || y <= 0
+	    || x > 9999
+	    || y > 9999)
 		do_usage(name, 1);
 
 	/* Set new resolution. */

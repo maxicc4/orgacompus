@@ -11,8 +11,8 @@
 	
 mips32_plot:
 
-	.frame	$fp, 72, ra				# $fp: registro usado como frame pointer
-							# 72: tamano del stack frame
+	.frame	$fp, 88, ra				# $fp: registro usado como frame pointer
+							# 88: tamano del stack frame
 							# ra: registro que almacena el return address
 	
 	# Bloque para codigo PIC
@@ -21,51 +21,57 @@ mips32_plot:
 	.set	reorder					# Enciende reordenamiento de instrucciones
 
 	# Se crea stack frame
-	subu	sp, sp, 72				# 6 (ABA) + 12 (SRA: s0..s7,gp,fp,ra,offset)
+	subu	sp, sp, 88				# 4 (ABA) + 6 (LTA) + 12 (SRA: s0..s7,gp,fp,ra,offset)
 
 	# Directiva para codigo PIC
-	.cprestore 56					# inserta aqui "sw gp, 56(sp)",
-							# mas "lw gp, 56(sp)" luego de cada jal.
+	.cprestore 72					# inserta aqui "sw gp, 72(sp)",
+							# mas "lw gp, 72(sp)" luego de cada jal.
 	# Salvado de callee-saved regs en SRA
-	sw	s0, 24(sp)
-	sw	s1, 28(sp)
-	sw	s2, 32(sp)
-	sw	s3, 36(sp)
-	sw	s4, 40(sp)
-	sw	s5, 44(sp)
-	sw	s6, 48(sp)
-	sw	s7, 52(sp)
-	sw	$fp, 60(sp)
-	sw	ra, 64(sp)
+	sw	s0, 40(sp)
+	sw	s1, 44(sp)
+	sw	s2, 48(sp)
+	sw	s3, 52(sp)
+	sw	s4, 56(sp)
+	sw	s5, 60(sp)
+	sw	s6, 64(sp)
+	sw	s7, 68(sp)
+	sw	$fp, 76(sp)
+	sw	ra, 80(sp)
 
 	# De aqui al fin de la funcion uso $fp en lugar de sp.
 	move	$fp, sp
 
 	# Salvo el argumento
-	sw	a0, 72($fp)
+	sw	a0, 88($fp)
 
-	# Pongo el argumento en t0
-	lw	t0, 72($fp)
-	
-	# Se imprime el header PGM en un solo fprintf
-	# fprintf(parms->fp,"P2\n%u\n%u\n%u\n",parms->x_res,parms->y_res,parms->shades-1)
-	lw	a0, 44(t0)				# a0 <- (parms->fp)
-	la	a1, encabezado				# a1 <- ("P2\n%u\n%u\n%u\n")
-	lw	a2, 32(t0)				# a2 <- (parms->x_res)
-	lw	a3, 36(t0)				# a3 <- (parms->y_res)
-	lw	t1, 40(t0)				# t1 <- (parms->shades)
-	addiu t1, t1, -1				# t1 = t1 - 1
-	sw	t1, 16($fp)				# Guardo t1 en el quinto lugar de la ABA para que lo use fprintf
-	jal	fprintf
+	# Se imprime "P2\n"
+	la	a1, encabezado			# a1 <- ("P2\n")
+	li	a2, 3
+	jal	_write
+
+	# Se imprime (parms->x_res)
+	lw	t0, 88($fp)				# t0 <- (parms)
+	lw	a0, 32(t0)				# a0 <- (parms->x_res)
+	jal	_write_number
+	# Se imprime (parms->y_res)
+	lw	t0, 88($fp)				# t0 <- (parms)
+	lw	a0, 36(t0)				# a0 <- (parms->y_res)
+	jal	_write_number
+	# Se imprime (parms->shades)
+	lw	t0, 88($fp)				# t0 <- (parms)
+	lw	a0, 40(t0)				# a0 <- (parms->shades - 1)
+	addiu a0, a0, -1				# a0 = a0 - 1
+	jal	_write_number
+
 
 	# Control de error de escritura
-	bltz	v0, exit_error_io			# if (resultado fprintf < 0) -> ERROR
+	bltz	v0, exit_error_io
 
 
 	l.s $f0, fp2	# f0 <- 2.0
 	l.s $f1, fp4	# f1 <- 4.0
 
-	lw t0, 72($fp)	# t0 <- &params
+	lw t0, 88($fp)	# t0 <- &params
 	l.s $f2, 0(t0)	# f2 <- (param->UL_re)
 	l.s $f3, 4(t0)	# f3 <- (param->UL_im)
 	l.s $f4, 16(t0)	# f4 <- (param->d_re)
@@ -115,18 +121,12 @@ loop2:	bgeu s5, s0, exit_loop2
 
 exit_loop2:
 
-	# Pongo el argumento en t0
-	lw	t0, 72($fp)
-
 	# Se imprime la intensidad
-	# fprintf(parms->fp, "%u\n", c);
-	lw	a0, 44(t0)
-	la	a1, intensidad
-	move	a2, s5
-	jal	fprintf
+	move	a0, s5
+	jal	_write_number
 
 	# Control de error de escritura
-	bltz	v0, exit_error_io			# if (resultado fprintf < 0) -> ERROR
+	bltz	v0, exit_error_io
 
 	add.s $f9, $f9, $f4				# (cr += parms->d_re)
 	j loop1
@@ -155,7 +155,7 @@ exit_error_io:
 exit_loop0: 
 
 	# Pongo el argumento en t0
-	lw	t0, 72($fp)
+	lw	t0, 88($fp)
 
 	lw	a0, 44(t0)
 	jal	fflush
@@ -182,21 +182,79 @@ exit_withouterror:
 
 	# return;
 	# Restauro callee-saved regs
-	lw	s0, 24(sp)
-	lw	s1, 28(sp)
-	lw	s2, 32(sp)
-	lw	s3, 36(sp)
-	lw	s4, 40(sp)
-	lw	s5, 44(sp)
-	lw	s6, 48(sp)
-	lw	s7, 52(sp)
-	lw	gp, 56(sp)
-	lw	$fp, 60(sp)
-	lw	ra, 64(sp)
+	lw	s0, 40(sp)
+	lw	s1, 44(sp)
+	lw	s2, 48(sp)
+	lw	s3, 52(sp)
+	lw	s4, 56(sp)
+	lw	s5, 60(sp)
+	lw	s6, 64(sp)
+	lw	s7, 68(sp)
+	lw	gp, 72(sp)
+	lw	$fp, 76(sp)
+	lw	ra, 80(sp)
 	# Destruyo stack frame
-	addu	sp, sp, 72
+	addu	sp, sp, 88
 	# Vuelvo a funcion llamante
 	jr	ra
+
+# FIN PROGRAMA PRINCIPAL
+
+
+# Recibe como parametro un entero en a0
+# Como maximo el numero puede tener 4 digitos (depende del tamanio reservado para LTA)
+_write_number:
+	
+	sw	ra, 16($fp)				# Salvo el ra de _write_number en LTA
+	move	t0, a0
+	
+	addiu	s6, $fp, 16			# Para guardar en el LTA desde la dir 20 (en la sig inst se le suma 4)
+other_digit:
+	addiu	s6, s6, 4
+	remu	t1, t0, 10			# Resto division
+	sll	t1, t1, 2				# Multiplico por 4 para acceder a la pos en el array (cada elem ocupa 4 bytes)
+	sw	t1, 0(s6)
+	divu	t0, t0, 10			# Division
+	bnez	t0, other_digit		# Si la division es cero
+
+print_digit:
+	lw	t1, 0(s6)
+	lw	a1, number(t1)
+	li	a2, 1
+	jal	_write
+
+	addiu s6, s6, -4
+	addiu	t1, $fp, 16
+	bgt	s6, t1, print_digit		# Si hay mas digitos en el stack
+
+#print_end_line
+	la	a1, end_line
+	li	a2, 1
+	jal	_write
+
+	lw	ra, 16($fp)
+	jr	ra
+
+# FIN _write_number
+
+# Llama al syscall write
+# Imprime en params->fp
+# En a1 se especifica el puntero al buffer que va a ser escrito en el archivo
+# En a2 la cantidad de bytes que van a ser escritos
+_write:
+	
+	sw	ra, 36($fp)				# Salvo el ra de _write en LTA
+	lw	t0, 88($fp)				# t0 <- (parms)
+	lw	t1, 44(t0)				# t1 <- (parms->fp)
+	# Se obtiene el file descriptor a traves del file pointer
+	lhu	a0, 14(t1)				# a0 <- (fp->_file)
+	li	v0, SYS_write
+	syscall
+
+	lw	ra, 36($fp)
+	jr	ra
+
+# FIN _write
 
 	.end	mips32_plot
 	.size	mips32_plot,.-mips32_plot
@@ -208,10 +266,30 @@ fp2:
 fp4:
 	.float 4.0
 encabezado:
-	.asciiz "P2\n%u\n%u\n%u\n"
+	.asciiz "P2\n"
 intensidad:
 	.asciiz "%u\n"
 errorio:
 	.asciiz "i/o error.\n"
 cannotflush:
 	.asciiz "cannot flush output file.\n"
+
+	.align 2
+number:	.word number_0, number_1, number_2, number_3, number_4, \
+	      number_5, number_6, number_7, number_8, number_9
+	.size number, 40
+
+	.align 0
+
+number_0: .asciiz "0"
+number_1: .asciiz "1"
+number_2: .asciiz "2"
+number_3: .asciiz "3"
+number_4: .asciiz "4"
+number_5: .asciiz "5"
+number_6: .asciiz "6"
+number_7: .asciiz "7"
+number_8: .asciiz "8"
+number_9: .asciiz "9"
+
+end_line: .ascii "\n"
