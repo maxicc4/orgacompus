@@ -22,7 +22,7 @@ int main(int argc, char** argv){
 	if (!archivo_en_mips32)
 		return -1;
 	
-	for (int i=0; i<3; i++){
+	for (int i=0; i<4; i++){
 		read_c = getline(&linea_c, &len_c, archivo_en_c);
 		read_mips32 = getline(&linea_mips32, &len_mips32, archivo_en_mips32);
 	}
