@@ -11,9 +11,9 @@
 	
 mips32_plot:
 
-	.frame	$fp, 128, ra			# $fp: registro usado como frame pointer
-									# 128: tamano del stack frame
-									# ra: registro que almacena el return address
+	.frame	$fp, 128, ra				# $fp: registro usado como frame pointer
+							# 128: tamano del stack frame
+							# ra: registro que almacena el return address
 	
 	# Bloque para codigo PIC
 	.set	noreorder				# Apaga reordenamiento de instrucciones
@@ -57,29 +57,27 @@ mips32_plot:
 	sw	a0, 128($fp)
 
 	# Se imprime "P2\n"
-	la	a1, encabezado			# a1 <- ("P2\n")
+	la	a1, encabezado				# a1 <- ("P2\n")
 	li	a2, 3
 	jal	_write
-	bltz	v0, exit_error_io	# Control de error de escritura
 
 	# Se imprime (parms->x_res)
 	lw	t0, 128($fp)				# t0 <- (parms)
 	lw	a0, 32(t0)				# a0 <- (parms->x_res)
 	jal	_write_number
-	bltz	v0, exit_error_io	# Control de error de escritura
+
 	# Se imprime (parms->y_res)
 	lw	t0, 128($fp)				# t0 <- (parms)
 	lw	a0, 36(t0)				# a0 <- (parms->y_res)
 	jal	_write_number
-	bltz	v0, exit_error_io	# Control de error de escritura
+
 	# Se imprime (parms->shades - 1)
 	lw	t0, 128($fp)				# t0 <- (parms)
 	lw	a0, 40(t0)				# a0 <- (parms->shades)
 	addiu a0, a0, -1				# a0 = a0 - 1
 	jal	_write_number
-	bltz	v0, exit_error_io	# Control de error de escritura
-
-
+	
+	
 	l.s $f0, fp2		# f0 <- 2.0
 	l.s $f2, fp4		# f2 <- 4.0
 
@@ -136,7 +134,6 @@ exit_loop2:
 	# Se imprime la intensidad
 	move	a0, s5
 	jal	_write_number
-	bltz	v0, exit_error_io	# Control de error de escritura
 
 	add.s $f18, $f18, $f8				# (cr += parms->d_re)
 	j loop1
@@ -231,16 +228,19 @@ _write_number:
 	sw	ra, 16($fp)				# Salvo el ra de _write_number en LTA
 	move	t0, a0
 	
-	addiu	s6, $fp, 16			# Para guardar en el LTA desde la dir 20 (en la sig inst se le suma 4)
+	addiu	s6, $fp, 16				# Para guardar en el LTA desde la dir 20 (en la sig inst se le suma 4)
+	
 other_digit:
+
 	addiu	s6, s6, 4
-	remu	t1, t0, 10			# Resto division
+	remu	t1, t0, 10				# Resto division
 	sll	t1, t1, 2				# Multiplico por 4 para acceder a la pos en el array (cada elem ocupa 4 bytes)
 	sw	t1, 0(s6)
-	divu	t0, t0, 10			# Division
-	bnez	t0, other_digit		# Si la division es cero
+	divu	t0, t0, 10				# Division
+	bnez	t0, other_digit				# Si la division es cero
 
 print_digit:
+
 	lw	t1, 0(s6)
 	lw	a1, number(t1)
 	li	a2, 1
@@ -248,9 +248,9 @@ print_digit:
 
 	addiu s6, s6, -4
 	addiu	t1, $fp, 16
-	bgt	s6, t1, print_digit		# Si hay mas digitos en el stack
+	bgt	s6, t1, print_digit			# Si hay mas digitos en el stack
 
-#print_end_line
+	#print_end_line
 	la	a1, end_line
 	li	a2, 1
 	jal	_write
@@ -273,6 +273,7 @@ _write:
 	lhu	a0, 14(t1)				# a0 <- (fp->_file)
 	li	v0, SYS_write
 	syscall
+	bnez 	a3, exit_error_io
 
 	lw	ra, 36($fp)
 	jr	ra
